@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>:root { --tool-color: #3498db; }</style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Stopwatch</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box">
+            <div class="time-display" id="display">00:00.0</div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="startBtn" onclick="toggle()">&#9654; Start</button>
+            <button class="btn btn-secondary btn-large" id="lapBtn" onclick="lap()" style="display:none;">Lap</button>
+            <button class="btn btn-danger btn-large" id="resetBtn" onclick="reset()" style="display:none;">&#8634; Reset</button>
+            <button class="btn btn-secondary btn-large" onclick="goFullscreen()">&#9974; Fullscreen</button>
+        </div>
+
+        <div id="laps" style="margin-top:1.5rem;"></div>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay" onclick="exitFullscreen()">
+        <div class="time-display" id="fsDisplay">00:00.0</div>
+        <div class="exit-hint">Click anywhere to exit fullscreen</div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let startTime = 0;
+        let elapsed = 0;
+        let interval = null;
+        let running = false;
+        let laps = [];
+
+        function formatTime(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            const d = Math.floor((ms % 1000) / 100);
+            return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + d;
+        }
+
+        function updateDisplay() {
+            const now = running ? elapsed + (Date.now() - startTime) : elapsed;
+            const text = formatTime(now);
+            document.getElementById('display').textContent = text;
+            document.getElementById('fsDisplay').textContent = text;
+        }
+
+        function toggle() {
+            if (running) {
+                // Pause
+                elapsed += Date.now() - startTime;
+                clearInterval(interval);
+                running = false;
+                document.getElementById('startBtn').innerHTML = '&#9654; Resume';
+                document.getElementById('lapBtn').style.display = 'none';
+            } else {
+                // Start
+                startTime = Date.now();
+                running = true;
+                interval = setInterval(updateDisplay, 50);
+                document.getElementById('startBtn').innerHTML = '&#10074;&#10074; Pause';
+                document.getElementById('lapBtn').style.display = '';
+                document.getElementById('resetBtn').style.display = '';
+                playClick();
+            }
+        }
+
+        function lap() {
+            if (!running) return;
+            const now = elapsed + (Date.now() - startTime);
+            laps.push(now);
+            playClick();
+            renderLaps();
+        }
+
+        function renderLaps() {
+            const container = document.getElementById('laps');
+            if (laps.length === 0) { container.innerHTML = ''; return; }
+            let html = '<div class="settings-panel"><h3 style="margin-bottom:0.75rem;">Laps</h3><table style="width:100%;border-collapse:collapse;">';
+            laps.forEach((t, i) => {
+                const diff = i === 0 ? t : t - laps[i-1];
+                html += `<tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:0.4rem 0;font-weight:600;">Lap ${i+1}</td>
+                    <td style="padding:0.4rem 0;text-align:right;font-variant-numeric:tabular-nums;">${formatTime(t)}</td>
+                    <td style="padding:0.4rem 0;text-align:right;color:var(--text-light);font-variant-numeric:tabular-nums;">+${formatTime(diff)}</td>
+                </tr>`;
+            });
+            html += '</table></div>';
+            container.innerHTML = html;
+        }
+
+        function reset() {
+            clearInterval(interval);
+            running = false;
+            elapsed = 0;
+            laps = [];
+            updateDisplay();
+            renderLaps();
+            document.getElementById('startBtn').innerHTML = '&#9654; Start';
+            document.getElementById('lapBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+        }
+
+        function goFullscreen() {
+            document.getElementById('fullscreenOverlay').classList.add('active');
+        }
+
+        function exitFullscreen() {
+            document.getElementById('fullscreenOverlay').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') exitFullscreen();
+            if (e.key === ' ') { e.preventDefault(); toggle(); }
+        });
+    </script>
+</body>
+</html>

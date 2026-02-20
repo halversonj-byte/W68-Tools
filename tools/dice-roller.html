@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #f39c12; }
+        .dice-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            justify-content: center;
+            min-height: 120px;
+            align-items: center;
+        }
+        .die {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 3px solid var(--tool-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--tool-color);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+        .die.rolling {
+            animation: dieRoll 0.4s ease-in-out;
+        }
+        @keyframes dieRoll {
+            0% { transform: rotateZ(0deg) scale(1); }
+            25% { transform: rotateZ(-15deg) scale(1.1); }
+            50% { transform: rotateZ(10deg) scale(1.05); }
+            75% { transform: rotateZ(-5deg) scale(1.02); }
+            100% { transform: rotateZ(0deg) scale(1); }
+        }
+        .total-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-top: 1rem;
+        }
+        .history-entry {
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Dice Roller</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box">
+            <div class="dice-container" id="diceContainer">
+                <div class="die">?</div>
+            </div>
+            <div class="total-display" id="totalDisplay"></div>
+        </div>
+
+        <div class="settings-panel">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="numDice">Number of Dice</label>
+                    <select id="numDice" onchange="initDice()">
+                        <option value="1" selected>1 Die</option>
+                        <option value="2">2 Dice</option>
+                        <option value="3">3 Dice</option>
+                        <option value="4">4 Dice</option>
+                        <option value="5">5 Dice</option>
+                        <option value="6">6 Dice</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="dieType">Sides</label>
+                    <select id="dieType">
+                        <option value="6" selected>6-sided (d6)</option>
+                        <option value="4">4-sided (d4)</option>
+                        <option value="8">8-sided (d8)</option>
+                        <option value="10">10-sided (d10)</option>
+                        <option value="12">12-sided (d12)</option>
+                        <option value="20">20-sided (d20)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-bottom:1.5rem;">
+            <button class="btn btn-primary btn-large" onclick="rollDice()">&#127922; Roll!</button>
+            <button class="btn btn-secondary" onclick="clearHistory()">Clear History</button>
+        </div>
+
+        <div class="settings-panel" id="historyPanel" style="display:none;">
+            <h3 style="margin-bottom:0.5rem;">Roll History</h3>
+            <div id="history"></div>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let history = [];
+
+        function initDice() {
+            const n = parseInt(document.getElementById('numDice').value);
+            const container = document.getElementById('diceContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < n; i++) {
+                const die = document.createElement('div');
+                die.className = 'die';
+                die.textContent = '?';
+                container.appendChild(die);
+            }
+            document.getElementById('totalDisplay').textContent = '';
+        }
+
+        function rollDice() {
+            const sides = parseInt(document.getElementById('dieType').value);
+            const dice = document.querySelectorAll('.die');
+            const results = [];
+
+            playDiceRoll();
+
+            // Animate each die
+            dice.forEach((die, i) => {
+                die.classList.add('rolling');
+                // Cycle random numbers
+                let cycles = 0;
+                const maxCycles = 8 + i * 2;
+                const cycleId = setInterval(() => {
+                    die.textContent = Math.floor(Math.random() * sides) + 1;
+                    cycles++;
+                    if (cycles >= maxCycles) {
+                        clearInterval(cycleId);
+                        const result = Math.floor(Math.random() * sides) + 1;
+                        die.textContent = result;
+                        die.classList.remove('rolling');
+                        results.push(result);
+
+                        // Once all dice are done
+                        if (results.length === dice.length) {
+                            const total = results.reduce((a, b) => a + b, 0);
+                            if (dice.length > 1) {
+                                document.getElementById('totalDisplay').textContent = 'Total: ' + total;
+                            } else {
+                                document.getElementById('totalDisplay').textContent = '';
+                            }
+                            addHistory(results, total);
+                            playClick();
+                        }
+                    }
+                }, 60);
+            });
+        }
+
+        function addHistory(results, total) {
+            history.unshift({ results: [...results], total });
+            if (history.length > 20) history.pop();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            document.getElementById('historyPanel').style.display = '';
+            const container = document.getElementById('history');
+            container.innerHTML = history.map((h, i) =>
+                `<div class="history-entry">
+                    <span>[${h.results.join(', ')}]</span>
+                    <span style="font-weight:600;">= ${h.total}</span>
+                </div>`
+            ).join('');
+        }
+
+        function clearHistory() {
+            history = [];
+            document.getElementById('history').innerHTML = '';
+            document.getElementById('historyPanel').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') { e.preventDefault(); rollDice(); }
+        });
+    </script>
+</body>
+</html>

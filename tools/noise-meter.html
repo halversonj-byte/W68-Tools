@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noise Meter - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #00bcd4; }
+        .meter-container {
+            position: relative;
+            height: 350px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 6px;
+            padding: 1rem;
+        }
+        .meter-bar {
+            width: 30px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.1s ease;
+            min-height: 4px;
+        }
+        .level-label {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+        .level-description {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+        .threshold-setting {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+        .threshold-setting input[type="range"] {
+            flex: 1;
+        }
+        .alert-flash {
+            animation: flash-border 0.5s ease-in-out infinite;
+        }
+        @keyframes flash-border {
+            0%, 100% { box-shadow: var(--shadow); }
+            50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.6); }
+        }
+        .mic-permission {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        .mic-permission p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Noise Meter</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box" id="meterBox">
+            <div id="permissionPrompt" class="mic-permission">
+                <p>This tool uses your device's microphone to measure classroom noise levels.</p>
+                <p>No audio is recorded or stored - it only measures volume.</p>
+                <button class="btn btn-primary btn-large" onclick="startMeter()">&#127908; Enable Microphone</button>
+            </div>
+            <div id="meterDisplay" style="display:none;">
+                <div class="meter-container" id="meterBars"></div>
+                <div class="level-label" id="levelLabel">Quiet</div>
+                <div class="level-description" id="levelDesc">Keep it up!</div>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel" style="display:none;">
+            <div class="input-group">
+                <label>Noise Threshold (alert when too loud)</label>
+                <div class="threshold-setting">
+                    <span>Low</span>
+                    <input type="range" id="threshold" min="10" max="90" value="60">
+                    <span>High</span>
+                </div>
+            </div>
+            <div style="margin-top:0.5rem;">
+                <label style="font-size:0.9rem; color:var(--text-light);">
+                    <input type="checkbox" id="alertSound" checked> Play alert sound when threshold is exceeded
+                </label>
+            </div>
+        </div>
+
+        <div class="btn-group" id="controlButtons" style="display:none;">
+            <button class="btn btn-danger" onclick="stopMeter()">&#9724; Stop</button>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let audioCtx, analyser, microphone, animFrame;
+        let alertCooldown = false;
+        const NUM_BARS = 20;
+
+        // Create bars
+        function initBars() {
+            const container = document.getElementById('meterBars');
+            container.innerHTML = '';
+            for (let i = 0; i < NUM_BARS; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'meter-bar';
+                bar.style.height = '4px';
+                bar.style.background = getBarColor(i / NUM_BARS);
+                container.appendChild(bar);
+            }
+        }
+
+        function getBarColor(pct) {
+            if (pct < 0.4) return '#2ecc71';
+            if (pct < 0.7) return '#f1c40f';
+            if (pct < 0.85) return '#e67e22';
+            return '#e74c3c';
+        }
+
+        function getLevel(volume) {
+            if (volume < 15) return { label: 'Silent', desc: 'Perfect quiet time', color: '#2ecc71' };
+            if (volume < 30) return { label: 'Whisper', desc: 'Nice and quiet', color: '#27ae60' };
+            if (volume < 50) return { label: 'Indoor Voice', desc: 'Good level for group work', color: '#f1c40f' };
+            if (volume < 70) return { label: 'Getting Loud', desc: 'Time to bring it down', color: '#e67e22' };
+            if (volume < 85) return { label: 'Too Loud', desc: 'Please use indoor voices!', color: '#e74c3c' };
+            return { label: 'Way Too Loud!', desc: 'Stop and reset!', color: '#c0392b' };
+        }
+
+        async function startMeter() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                microphone = audioCtx.createMediaStreamSource(stream);
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.8;
+                microphone.connect(analyser);
+
+                document.getElementById('permissionPrompt').style.display = 'none';
+                document.getElementById('meterDisplay').style.display = '';
+                document.getElementById('settingsPanel').style.display = '';
+                document.getElementById('controlButtons').style.display = '';
+                initBars();
+                updateMeter();
+            } catch (err) {
+                alert('Could not access microphone. Please allow microphone access and try again.');
+            }
+        }
+
+        function updateMeter() {
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(data);
+
+            // Calculate average volume (0-100)
+            const avg = data.reduce((sum, val) => sum + val, 0) / data.length;
+            const volume = Math.min(100, (avg / 128) * 100);
+
+            // Update bars
+            const bars = document.querySelectorAll('.meter-bar');
+            bars.forEach((bar, i) => {
+                const barThreshold = (i / NUM_BARS) * 100;
+                if (volume > barThreshold) {
+                    const height = Math.min(300, ((volume - barThreshold) / 100) * 300 + 8);
+                    bar.style.height = height + 'px';
+                    bar.style.opacity = '1';
+                } else {
+                    bar.style.height = '4px';
+                    bar.style.opacity = '0.3';
+                }
+            });
+
+            // Update label
+            const level = getLevel(volume);
+            document.getElementById('levelLabel').textContent = level.label;
+            document.getElementById('levelLabel').style.color = level.color;
+            document.getElementById('levelDesc').textContent = level.desc;
+
+            // Check threshold
+            const threshold = parseInt(document.getElementById('threshold').value);
+            const meterBox = document.getElementById('meterBox');
+            if (volume > threshold) {
+                meterBox.classList.add('alert-flash');
+                if (!alertCooldown && document.getElementById('alertSound').checked) {
+                    playWarning();
+                    alertCooldown = true;
+                    setTimeout(() => { alertCooldown = false; }, 3000);
+                }
+            } else {
+                meterBox.classList.remove('alert-flash');
+            }
+
+            animFrame = requestAnimationFrame(updateMeter);
+        }
+
+        function stopMeter() {
+            if (animFrame) cancelAnimationFrame(animFrame);
+            if (microphone) microphone.disconnect();
+            if (audioCtx) audioCtx.close();
+            document.getElementById('permissionPrompt').style.display = '';
+            document.getElementById('meterDisplay').style.display = 'none';
+            document.getElementById('settingsPanel').style.display = 'none';
+            document.getElementById('controlButtons').style.display = 'none';
+            document.getElementById('meterBox').classList.remove('alert-flash');
+        }
+    </script>
+</body>
+</html>

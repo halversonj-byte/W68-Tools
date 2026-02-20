@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turn Timer - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #9b59b6; }
+        .turn-indicator {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .turn-box {
+            flex: 1;
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: #ecf0f1;
+            color: var(--text-light);
+        }
+        .turn-box.active {
+            background: var(--tool-color);
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+        .turn-box.done {
+            background: #2ecc71;
+            color: white;
+        }
+        .turn-name-input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: inherit;
+            width: 100%;
+            font-family: inherit;
+        }
+        .turn-name-input:focus {
+            outline: none;
+            border-bottom: 2px solid currentColor;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Turn Timer</h1>
+    </header>
+
+    <div class="tool-container">
+        <p style="text-align:center; color:var(--text-light); margin-bottom:1.5rem;">
+            Each person gets equal time to share. Great for Timed Pair Share and turn-taking activities.
+        </p>
+
+        <div class="turn-indicator" id="turnIndicator">
+            <div class="turn-box" id="turn1">
+                <input class="turn-name-input" id="name1" value="Partner A" onfocus="this.select()">
+            </div>
+            <div class="turn-box" id="turn2">
+                <input class="turn-name-input" id="name2" value="Partner B" onfocus="this.select()">
+            </div>
+        </div>
+
+        <div class="display-box">
+            <div class="time-display" id="display">00:00</div>
+            <div id="statusLabel" style="font-size:1.1rem; color:var(--text-light); margin-top:0.5rem;">Set time per turn and press Start</div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="turnMinutes">Minutes per turn</label>
+                    <input type="number" id="turnMinutes" min="0" max="30" value="1">
+                </div>
+                <div class="input-group">
+                    <label for="turnSeconds">Seconds per turn</label>
+                    <input type="number" id="turnSeconds" min="0" max="59" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="numTurns">Number of partners</label>
+                    <select id="numTurns" onchange="updatePartners()">
+                        <option value="2" selected>2 Partners</option>
+                        <option value="3">3 Partners</option>
+                        <option value="4">4 Partners</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="startBtn" onclick="start()">&#9654; Start</button>
+            <button class="btn btn-danger btn-large" id="resetBtn" onclick="reset()" style="display:none;">&#8634; Reset</button>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let turnTime = 0;
+        let remaining = 0;
+        let currentTurn = 0;
+        let numPartners = 2;
+        let interval = null;
+        let running = false;
+
+        function updatePartners() {
+            numPartners = parseInt(document.getElementById('numTurns').value);
+            const container = document.getElementById('turnIndicator');
+            const names = ['Partner A', 'Partner B', 'Partner C', 'Partner D'];
+            container.innerHTML = '';
+            for (let i = 0; i < numPartners; i++) {
+                const div = document.createElement('div');
+                div.className = 'turn-box';
+                div.id = 'turn' + (i + 1);
+                div.innerHTML = `<input class="turn-name-input" id="name${i+1}" value="${names[i]}" onfocus="this.select()">`;
+                container.appendChild(div);
+            }
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            document.getElementById('display').textContent =
+                String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }
+
+        function highlightTurn() {
+            for (let i = 0; i < numPartners; i++) {
+                const el = document.getElementById('turn' + (i + 1));
+                el.classList.remove('active', 'done');
+                if (i < currentTurn) el.classList.add('done');
+                if (i === currentTurn) el.classList.add('active');
+            }
+            const name = document.getElementById('name' + (currentTurn + 1)).value;
+            document.getElementById('statusLabel').textContent = name + "'s turn to share";
+        }
+
+        function start() {
+            if (running) return;
+            const m = parseInt(document.getElementById('turnMinutes').value) || 0;
+            const s = parseInt(document.getElementById('turnSeconds').value) || 0;
+            turnTime = m * 60 + s;
+            if (turnTime === 0) return;
+            numPartners = parseInt(document.getElementById('numTurns').value);
+            currentTurn = 0;
+            remaining = turnTime;
+
+            running = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = '';
+            document.getElementById('settingsPanel').style.opacity = '0.5';
+            document.getElementById('settingsPanel').style.pointerEvents = 'none';
+
+            updateDisplay();
+            highlightTurn();
+            playChime();
+
+            interval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+
+                if (remaining <= 5 && remaining > 0) playTick();
+
+                if (remaining <= 0) {
+                    currentTurn++;
+                    if (currentTurn >= numPartners) {
+                        // All done
+                        clearInterval(interval);
+                        running = false;
+                        for (let i = 0; i < numPartners; i++) {
+                            document.getElementById('turn' + (i + 1)).classList.remove('active');
+                            document.getElementById('turn' + (i + 1)).classList.add('done');
+                        }
+                        document.getElementById('statusLabel').textContent = "All turns complete!";
+                        document.getElementById('startBtn').style.display = '';
+                        playAlarm();
+                    } else {
+                        remaining = turnTime;
+                        highlightTurn();
+                        playChime();
+                    }
+                }
+            }, 1000);
+        }
+
+        function reset() {
+            clearInterval(interval);
+            running = false;
+            remaining = 0;
+            currentTurn = 0;
+            updateDisplay();
+            document.getElementById('statusLabel').textContent = 'Set time per turn and press Start';
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('settingsPanel').style.opacity = '';
+            document.getElementById('settingsPanel').style.pointerEvents = '';
+            for (let i = 0; i < numPartners; i++) {
+                const el = document.getElementById('turn' + (i + 1));
+                if (el) el.classList.remove('active', 'done');
+            }
+        }
+    </script>
+</body>
+</html>

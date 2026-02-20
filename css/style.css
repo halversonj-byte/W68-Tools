@@ -1,0 +1,384 @@
+/* ========================================
+   W68 Teacher Tools - Global Styles
+   ======================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary: #2c3e50;
+    --primary-light: #34495e;
+    --accent: #3498db;
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --text-light: #7f8c8d;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --radius: 12px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Header */
+.site-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.site-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.site-header .subtitle {
+    font-size: 1.1rem;
+    opacity: 0.85;
+}
+
+/* Tool Grid */
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.tool-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--text);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-top: 4px solid var(--card-color, var(--accent));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.tool-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--card-color, var(--accent)) 12%, transparent);
+    color: var(--card-color, var(--accent));
+}
+
+.tool-card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--card-color, var(--accent));
+}
+
+.tool-card p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+/* Footer */
+.site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   Tool Page Shared Styles
+   ======================================== */
+
+.tool-header {
+    background: linear-gradient(135deg, var(--tool-color, var(--primary)), color-mix(in srgb, var(--tool-color, var(--primary)) 70%, black));
+    color: white;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.tool-header .back-link {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.tool-header .back-link:hover {
+    opacity: 1;
+}
+
+.tool-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.tool-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    font-family: inherit;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn-primary {
+    background: var(--tool-color, var(--accent));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: color-mix(in srgb, var(--tool-color, var(--accent)) 85%, black);
+}
+
+.btn-secondary {
+    background: #ecf0f1;
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: #dfe6e9;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-large {
+    padding: 1rem 2.5rem;
+    font-size: 1.25rem;
+    border-radius: 12px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Inputs */
+.input-group {
+    margin-bottom: 1.25rem;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 2px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    outline: none;
+    border-color: var(--tool-color, var(--accent));
+}
+
+/* Display */
+.display-box {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.time-display {
+    font-size: 6rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--tool-color, var(--text));
+}
+
+.settings-panel {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.settings-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.settings-row .input-group {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Fullscreen overlay */
+.fullscreen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--primary);
+    color: white;
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.fullscreen-overlay.active {
+    display: flex;
+}
+
+.fullscreen-overlay .time-display {
+    font-size: min(20vw, 20vh);
+    color: white;
+}
+
+.fullscreen-overlay .fs-label {
+    font-size: 1.5rem;
+    opacity: 0.7;
+    margin-top: 1rem;
+}
+
+.fullscreen-overlay .exit-hint {
+    position: absolute;
+    bottom: 2rem;
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+
+/* Animation helpers */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.animate-shake {
+    animation: shake 0.3s ease-in-out;
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Time's up flash */
+@keyframes flash-bg {
+    0%, 100% { background: var(--primary); }
+    50% { background: #e74c3c; }
+}
+
+.times-up {
+    animation: flash-bg 0.5s ease-in-out 6;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .site-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .tool-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .time-display {
+        font-size: 4rem;
+    }
+
+    .tool-container {
+        padding: 0 1rem;
+    }
+
+    .btn-large {
+        padding: 0.85rem 1.75rem;
+        font-size: 1.1rem;
+    }
+}
+
+/* Print - hide navigation for projector use */
+@media print {
+    .tool-header, .site-footer, .btn-group {
+        display: none;
+    }
+}

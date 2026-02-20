@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Maker - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #1abc9c; }
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .team-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .team-card-header {
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            color: white;
+            font-size: 1rem;
+        }
+        .team-card-body {
+            padding: 0.75rem 1rem;
+        }
+        .team-member {
+            padding: 0.35rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+        .team-member:last-child {
+            border-bottom: none;
+        }
+        .team-colors {
+            --c1: #e74c3c; --c2: #3498db; --c3: #2ecc71; --c4: #e67e22;
+            --c5: #9b59b6; --c6: #1abc9c; --c7: #34495e; --c8: #e91e63;
+            --c9: #00bcd4; --c10: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Team Maker</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="settings-panel">
+            <div class="input-group">
+                <label for="nameInput">Student Names (one per line)</label>
+                <textarea id="nameInput" rows="8" placeholder="Enter student names, one per line..."></textarea>
+            </div>
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="groupType">Group by</label>
+                    <select id="groupType">
+                        <option value="size">Team Size</option>
+                        <option value="count">Number of Teams</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="groupValue">Value</label>
+                    <input type="number" id="groupValue" min="2" max="20" value="4">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary btn-large" onclick="makeTeams()">&#128101; Make Teams</button>
+                <button class="btn btn-secondary" onclick="saveRoster()">Save Roster</button>
+                <button class="btn btn-secondary" onclick="loadRoster()">Load Saved</button>
+            </div>
+        </div>
+
+        <div id="teamsOutput"></div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        const teamColors = [
+            '#e74c3c', '#3498db', '#2ecc71', '#e67e22', '#9b59b6',
+            '#1abc9c', '#34495e', '#e91e63', '#00bcd4', '#ff9800'
+        ];
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function makeTeams() {
+            const text = document.getElementById('nameInput').value;
+            const names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            if (names.length < 2) { alert('Please enter at least 2 names.'); return; }
+
+            const type = document.getElementById('groupType').value;
+            const value = parseInt(document.getElementById('groupValue').value);
+            const shuffled = shuffle(names);
+
+            let teams = [];
+            if (type === 'size') {
+                // Split into teams of given size
+                for (let i = 0; i < shuffled.length; i += value) {
+                    teams.push(shuffled.slice(i, i + value));
+                }
+            } else {
+                // Split into N teams
+                const numTeams = Math.min(value, shuffled.length);
+                teams = Array.from({ length: numTeams }, () => []);
+                shuffled.forEach((name, i) => {
+                    teams[i % numTeams].push(name);
+                });
+            }
+
+            playWhoosh();
+            renderTeams(teams);
+        }
+
+        function renderTeams(teams) {
+            const container = document.getElementById('teamsOutput');
+            let html = '<div class="teams-grid">';
+            teams.forEach((team, i) => {
+                const color = teamColors[i % teamColors.length];
+                html += `<div class="team-card" style="animation-delay:${i * 0.1}s">
+                    <div class="team-card-header" style="background:${color}">Team ${i + 1}</div>
+                    <div class="team-card-body">
+                        ${team.map(name => `<div class="team-member">${name}</div>`).join('')}
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function saveRoster() {
+            const text = document.getElementById('nameInput').value;
+            const names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            if (names.length > 0) {
+                localStorage.setItem('w68-roster', JSON.stringify(names));
+                alert('Roster saved! (' + names.length + ' students)');
+            }
+        }
+
+        function loadRoster() {
+            const saved = localStorage.getItem('w68-roster');
+            if (saved) {
+                const names = JSON.parse(saved);
+                document.getElementById('nameInput').value = names.join('\n');
+                alert('Loaded ' + names.length + ' students.');
+            } else {
+                alert('No saved roster found.');
+            }
+        }
+
+        // Auto-load saved roster
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('w68-roster');
+            if (saved) {
+                document.getElementById('nameInput').value = JSON.parse(saved).join('\n');
+            }
+        });
+    </script>
+</body>
+</html>

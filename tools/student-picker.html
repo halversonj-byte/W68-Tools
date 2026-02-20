@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Student Picker - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #2ecc71; }
+        .picked-name {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--tool-color);
+            min-height: 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .name-cycling {
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+        .roster-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .roster-tag {
+            padding: 0.35rem 0.75rem;
+            background: #ecf0f1;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .roster-tag:hover {
+            background: #dfe6e9;
+        }
+        .roster-tag.picked {
+            background: var(--tool-color);
+            color: white;
+        }
+        .roster-tag.excluded {
+            opacity: 0.3;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Random Student Picker</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box">
+            <div class="picked-name" id="pickedName">Enter names below</div>
+        </div>
+
+        <div class="btn-group" style="margin-bottom:1.5rem;">
+            <button class="btn btn-primary btn-large" onclick="pickStudent()">&#127919; Pick a Student</button>
+            <button class="btn btn-secondary" onclick="resetPicked()">Reset All</button>
+        </div>
+
+        <div class="settings-panel">
+            <div class="input-group">
+                <label for="nameInput">Student Names (one per line)</label>
+                <textarea id="nameInput" rows="8" placeholder="Enter student names, one per line...
+Example:
+Emma
+Liam
+Olivia
+Noah"></textarea>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="loadNames()">Load Names</button>
+                <button class="btn btn-secondary" onclick="saveRoster()">Save to Browser</button>
+                <button class="btn btn-secondary" onclick="loadRoster()">Load Saved</button>
+            </div>
+            <div class="roster-tags" id="rosterTags"></div>
+            <div style="margin-top:0.75rem;">
+                <label style="font-size:0.85rem; color:var(--text-light);">
+                    <input type="checkbox" id="avoidRepeat" checked> Avoid picking the same student twice
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let names = [];
+        let pickedIndices = new Set();
+
+        function loadNames() {
+            const text = document.getElementById('nameInput').value;
+            names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            pickedIndices.clear();
+            renderTags();
+            document.getElementById('pickedName').textContent = names.length > 0
+                ? 'Ready - ' + names.length + ' students'
+                : 'Enter names below';
+        }
+
+        function renderTags() {
+            const container = document.getElementById('rosterTags');
+            container.innerHTML = '';
+            names.forEach((name, i) => {
+                const tag = document.createElement('span');
+                tag.className = 'roster-tag';
+                if (pickedIndices.has(i)) tag.classList.add('picked');
+                tag.textContent = name;
+                tag.onclick = () => {
+                    // Toggle exclude
+                    tag.classList.toggle('excluded');
+                };
+                container.appendChild(tag);
+            });
+        }
+
+        function pickStudent() {
+            if (names.length === 0) return;
+
+            const avoidRepeat = document.getElementById('avoidRepeat').checked;
+            const tags = document.querySelectorAll('.roster-tag');
+            let available = [];
+            names.forEach((name, i) => {
+                const isExcluded = tags[i] && tags[i].classList.contains('excluded');
+                const isPicked = avoidRepeat && pickedIndices.has(i);
+                if (!isExcluded && !isPicked) available.push(i);
+            });
+
+            if (available.length === 0) {
+                document.getElementById('pickedName').textContent = 'All students picked!';
+                playWarning();
+                return;
+            }
+
+            // Animate cycling
+            const display = document.getElementById('pickedName');
+            let cycles = 0;
+            const maxCycles = 15;
+
+            playDrumroll(800);
+
+            const cycleInterval = setInterval(() => {
+                const randIdx = available[Math.floor(Math.random() * available.length)];
+                display.textContent = names[randIdx];
+                display.className = 'picked-name name-cycling';
+                cycles++;
+                if (cycles >= maxCycles) {
+                    clearInterval(cycleInterval);
+                    // Final pick
+                    const finalIdx = available[Math.floor(Math.random() * available.length)];
+                    display.textContent = names[finalIdx];
+                    display.className = 'picked-name animate-fadeIn';
+                    pickedIndices.add(finalIdx);
+                    renderTags();
+                    playChime();
+                }
+            }, 60);
+        }
+
+        function resetPicked() {
+            pickedIndices.clear();
+            renderTags();
+            document.getElementById('pickedName').textContent = names.length > 0
+                ? 'Ready - ' + names.length + ' students'
+                : 'Enter names below';
+        }
+
+        function saveRoster() {
+            if (names.length === 0) { loadNames(); }
+            if (names.length > 0) {
+                localStorage.setItem('w68-roster', JSON.stringify(names));
+                alert('Roster saved! (' + names.length + ' students)');
+            }
+        }
+
+        function loadRoster() {
+            const saved = localStorage.getItem('w68-roster');
+            if (saved) {
+                names = JSON.parse(saved);
+                document.getElementById('nameInput').value = names.join('\n');
+                pickedIndices.clear();
+                renderTags();
+                document.getElementById('pickedName').textContent = 'Loaded ' + names.length + ' students';
+            } else {
+                alert('No saved roster found.');
+            }
+        }
+
+        // Auto-load saved roster on page load
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('w68-roster');
+            if (saved) {
+                names = JSON.parse(saved);
+                document.getElementById('nameInput').value = names.join('\n');
+                renderTags();
+                document.getElementById('pickedName').textContent = 'Ready - ' + names.length + ' students';
+            }
+        });
+    </script>
+</body>
+</html>

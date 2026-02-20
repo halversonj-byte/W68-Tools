@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>:root { --tool-color: #e74c3c; }</style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Countdown Timer</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box">
+            <div class="time-display" id="timerDisplay">00:00</div>
+            <div id="timerLabel" style="font-size:1.1rem; color:var(--text-light); margin-top:0.5rem;"></div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="minutes">Minutes</label>
+                    <input type="number" id="minutes" min="0" max="120" value="5">
+                </div>
+                <div class="input-group">
+                    <label for="seconds">Seconds</label>
+                    <input type="number" id="seconds" min="0" max="59" value="0">
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;">
+                <label style="font-weight:600; font-size:0.95rem;">Quick Set:</label>
+                <div class="btn-group" style="margin-top:0.5rem;">
+                    <button class="btn btn-secondary" onclick="quickSet(1,0)">1 min</button>
+                    <button class="btn btn-secondary" onclick="quickSet(2,0)">2 min</button>
+                    <button class="btn btn-secondary" onclick="quickSet(5,0)">5 min</button>
+                    <button class="btn btn-secondary" onclick="quickSet(10,0)">10 min</button>
+                    <button class="btn btn-secondary" onclick="quickSet(0,30)">30 sec</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="startBtn" onclick="startTimer()">&#9654; Start</button>
+            <button class="btn btn-secondary btn-large" id="pauseBtn" onclick="pauseTimer()" style="display:none;">&#10074;&#10074; Pause</button>
+            <button class="btn btn-danger btn-large" id="resetBtn" onclick="resetTimer()" style="display:none;">&#8634; Reset</button>
+            <button class="btn btn-secondary btn-large" id="fullscreenBtn" onclick="goFullscreen()">&#9974; Fullscreen</button>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay" onclick="exitFullscreen()">
+        <div class="time-display" id="fsTimerDisplay">00:00</div>
+        <div class="fs-label" id="fsLabel"></div>
+        <div class="exit-hint">Click anywhere to exit fullscreen</div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let totalSeconds = 0;
+        let remaining = 0;
+        let interval = null;
+        let running = false;
+
+        function quickSet(m, s) {
+            document.getElementById('minutes').value = m;
+            document.getElementById('seconds').value = s;
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            const text = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = text;
+            document.getElementById('fsTimerDisplay').textContent = text;
+
+            // Color change when low
+            const pct = totalSeconds > 0 ? remaining / totalSeconds : 1;
+            if (running && pct <= 0.1 && remaining > 0) {
+                document.getElementById('timerDisplay').style.color = '#e74c3c';
+                document.getElementById('timerDisplay').classList.add('animate-pulse');
+            } else {
+                document.getElementById('timerDisplay').style.color = '';
+                document.getElementById('timerDisplay').classList.remove('animate-pulse');
+            }
+        }
+
+        function startTimer() {
+            if (!running) {
+                if (remaining === 0) {
+                    const m = parseInt(document.getElementById('minutes').value) || 0;
+                    const s = parseInt(document.getElementById('seconds').value) || 0;
+                    totalSeconds = m * 60 + s;
+                    remaining = totalSeconds;
+                    if (remaining === 0) return;
+                }
+                running = true;
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = '';
+                document.getElementById('resetBtn').style.display = '';
+                document.getElementById('settingsPanel').style.opacity = '0.5';
+                document.getElementById('settingsPanel').style.pointerEvents = 'none';
+
+                interval = setInterval(() => {
+                    remaining--;
+                    updateDisplay();
+                    if (remaining <= 5 && remaining > 0) playTick();
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                        running = false;
+                        document.getElementById('timerLabel').textContent = "Time's Up!";
+                        document.getElementById('fsLabel').textContent = "Time's Up!";
+                        document.getElementById('fullscreenOverlay').classList.add('times-up');
+                        document.getElementById('startBtn').style.display = '';
+                        document.getElementById('pauseBtn').style.display = 'none';
+                        playAlarm();
+                        setTimeout(playAlarm, 1500);
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            if (running) {
+                clearInterval(interval);
+                running = false;
+                document.getElementById('startBtn').style.display = '';
+                document.getElementById('startBtn').innerHTML = '&#9654; Resume';
+                document.getElementById('pauseBtn').style.display = 'none';
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            running = false;
+            remaining = 0;
+            totalSeconds = 0;
+            updateDisplay();
+            document.getElementById('timerLabel').textContent = '';
+            document.getElementById('fsLabel').textContent = '';
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('startBtn').innerHTML = '&#9654; Start';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('settingsPanel').style.opacity = '';
+            document.getElementById('settingsPanel').style.pointerEvents = '';
+            document.getElementById('fullscreenOverlay').classList.remove('times-up');
+        }
+
+        function goFullscreen() {
+            document.getElementById('fullscreenOverlay').classList.add('active');
+            updateDisplay();
+        }
+
+        function exitFullscreen() {
+            document.getElementById('fullscreenOverlay').classList.remove('active');
+            document.getElementById('fullscreenOverlay').classList.remove('times-up');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') exitFullscreen();
+            if (e.key === ' ') {
+                e.preventDefault();
+                running ? pauseTimer() : startTimer();
+            }
+        });
+    </script>
+</body>
+</html>

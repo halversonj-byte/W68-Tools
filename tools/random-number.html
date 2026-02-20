@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Number - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #795548; }
+        .number-display {
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--tool-color);
+            min-height: 10rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-variant-numeric: tabular-nums;
+        }
+        .number-display.cycling {
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+        .history-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .history-num {
+            padding: 0.3rem 0.7rem;
+            background: #ecf0f1;
+            border-radius: 8px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Random Number</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="display-box">
+            <div class="number-display" id="display">?</div>
+        </div>
+
+        <div class="settings-panel">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="minNum">Minimum</label>
+                    <input type="number" id="minNum" value="1">
+                </div>
+                <div class="input-group">
+                    <label for="maxNum">Maximum</label>
+                    <input type="number" id="maxNum" value="30">
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;">
+                <label style="font-weight:600; font-size:0.95rem;">Quick Set:</label>
+                <div class="btn-group" style="margin-top:0.5rem;">
+                    <button class="btn btn-secondary" onclick="setRange(1,6)">1-6</button>
+                    <button class="btn btn-secondary" onclick="setRange(1,10)">1-10</button>
+                    <button class="btn btn-secondary" onclick="setRange(1,20)">1-20</button>
+                    <button class="btn btn-secondary" onclick="setRange(1,30)">1-30</button>
+                    <button class="btn btn-secondary" onclick="setRange(1,100)">1-100</button>
+                </div>
+            </div>
+            <div style="margin-top:0.75rem;">
+                <label style="font-size:0.9rem; color:var(--text-light);">
+                    <input type="checkbox" id="avoidRepeat"> Avoid repeats until all numbers used
+                </label>
+            </div>
+        </div>
+
+        <div class="btn-group" style="margin-bottom:1.5rem;">
+            <button class="btn btn-primary btn-large" onclick="generate()"># Generate</button>
+            <button class="btn btn-secondary" onclick="clearHistory()">Clear History</button>
+        </div>
+
+        <div class="settings-panel" id="historyPanel" style="display:none;">
+            <h3>History</h3>
+            <div class="history-numbers" id="history"></div>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let history = [];
+        let usedNumbers = new Set();
+
+        function setRange(min, max) {
+            document.getElementById('minNum').value = min;
+            document.getElementById('maxNum').value = max;
+            usedNumbers.clear();
+        }
+
+        function generate() {
+            const min = parseInt(document.getElementById('minNum').value);
+            const max = parseInt(document.getElementById('maxNum').value);
+            if (min > max) { alert('Minimum must be less than maximum.'); return; }
+
+            const avoidRepeat = document.getElementById('avoidRepeat').checked;
+            const totalPossible = max - min + 1;
+
+            if (avoidRepeat && usedNumbers.size >= totalPossible) {
+                document.getElementById('display').textContent = 'All used!';
+                playWarning();
+                return;
+            }
+
+            const display = document.getElementById('display');
+            let cycles = 0;
+            const maxCycles = 12;
+
+            playDrumroll(600);
+
+            const cycleId = setInterval(() => {
+                display.textContent = Math.floor(Math.random() * (max - min + 1)) + min;
+                display.className = 'number-display cycling';
+                cycles++;
+                if (cycles >= maxCycles) {
+                    clearInterval(cycleId);
+                    let result;
+                    if (avoidRepeat) {
+                        const available = [];
+                        for (let i = min; i <= max; i++) {
+                            if (!usedNumbers.has(i)) available.push(i);
+                        }
+                        result = available[Math.floor(Math.random() * available.length)];
+                        usedNumbers.add(result);
+                    } else {
+                        result = Math.floor(Math.random() * (max - min + 1)) + min;
+                    }
+                    display.textContent = result;
+                    display.className = 'number-display animate-fadeIn';
+                    history.unshift(result);
+                    renderHistory();
+                    playChime();
+                }
+            }, 60);
+        }
+
+        function renderHistory() {
+            if (history.length === 0) {
+                document.getElementById('historyPanel').style.display = 'none';
+                return;
+            }
+            document.getElementById('historyPanel').style.display = '';
+            document.getElementById('history').innerHTML = history
+                .map(n => `<span class="history-num">${n}</span>`).join('');
+        }
+
+        function clearHistory() {
+            history = [];
+            usedNumbers.clear();
+            renderHistory();
+            document.getElementById('display').textContent = '?';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') { e.preventDefault(); generate(); }
+        });
+    </script>
+</body>
+</html>

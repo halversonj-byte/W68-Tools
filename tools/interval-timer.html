@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval Timer - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #e67e22; }
+        .round-info {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--tool-color);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--tool-color);
+            border-radius: 6px;
+            transition: width 1s linear;
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Interval Timer</h1>
+    </header>
+
+    <div class="tool-container">
+        <p style="text-align:center; color:var(--text-light); margin-bottom:1.5rem;">
+            Repeating countdown for stations, rotations, and structured activities.
+        </p>
+
+        <div class="display-box">
+            <div class="round-info" id="roundInfo">Ready</div>
+            <div class="time-display" id="display">00:00</div>
+            <div class="progress-bar"><div class="progress-fill" id="progress" style="width:100%"></div></div>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label for="intMinutes">Minutes per interval</label>
+                    <input type="number" id="intMinutes" min="0" max="60" value="5">
+                </div>
+                <div class="input-group">
+                    <label for="intSeconds">Seconds per interval</label>
+                    <input type="number" id="intSeconds" min="0" max="59" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="rounds">Number of intervals</label>
+                    <input type="number" id="rounds" min="1" max="20" value="4">
+                </div>
+            </div>
+            <div class="settings-row" style="margin-top:0.5rem;">
+                <div class="input-group">
+                    <label for="breakSeconds">Break between intervals (seconds)</label>
+                    <input type="number" id="breakSeconds" min="0" max="120" value="10">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-primary btn-large" id="startBtn" onclick="startIntervals()">&#9654; Start</button>
+            <button class="btn btn-secondary btn-large" id="pauseBtn" onclick="pauseIntervals()" style="display:none;">&#10074;&#10074; Pause</button>
+            <button class="btn btn-danger btn-large" id="resetBtn" onclick="resetIntervals()" style="display:none;">&#8634; Reset</button>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        let intervalTime = 0;
+        let breakTime = 0;
+        let totalRounds = 0;
+        let currentRound = 0;
+        let remaining = 0;
+        let onBreak = false;
+        let timer = null;
+        let running = false;
+
+        function updateDisplay() {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            document.getElementById('display').textContent =
+                String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+            const total = onBreak ? breakTime : intervalTime;
+            const pct = total > 0 ? (remaining / total) * 100 : 0;
+            document.getElementById('progress').style.width = pct + '%';
+            document.getElementById('progress').style.background = onBreak ? '#95a5a6' : '';
+
+            if (onBreak) {
+                document.getElementById('roundInfo').textContent = 'Break - Next: Round ' + (currentRound + 1);
+                document.getElementById('roundInfo').style.color = '#95a5a6';
+            } else {
+                document.getElementById('roundInfo').textContent = 'Round ' + currentRound + ' of ' + totalRounds;
+                document.getElementById('roundInfo').style.color = '';
+            }
+        }
+
+        function tick() {
+            remaining--;
+            updateDisplay();
+
+            if (remaining <= 3 && remaining > 0) playTick();
+
+            if (remaining <= 0) {
+                if (onBreak) {
+                    // Break over, start next round
+                    onBreak = false;
+                    currentRound++;
+                    remaining = intervalTime;
+                    playChime();
+                    updateDisplay();
+                } else if (currentRound < totalRounds) {
+                    // Round over
+                    playAlarm();
+                    if (breakTime > 0) {
+                        onBreak = true;
+                        remaining = breakTime;
+                        updateDisplay();
+                    } else {
+                        currentRound++;
+                        if (currentRound > totalRounds) {
+                            finish();
+                            return;
+                        }
+                        remaining = intervalTime;
+                        updateDisplay();
+                    }
+                } else {
+                    finish();
+                }
+            }
+        }
+
+        function finish() {
+            clearInterval(timer);
+            running = false;
+            document.getElementById('roundInfo').textContent = 'All rounds complete!';
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('pauseBtn').style.display = 'none';
+            playAlarm();
+            setTimeout(playAlarm, 1500);
+        }
+
+        function startIntervals() {
+            if (!running) {
+                if (currentRound === 0) {
+                    const m = parseInt(document.getElementById('intMinutes').value) || 0;
+                    const s = parseInt(document.getElementById('intSeconds').value) || 0;
+                    intervalTime = m * 60 + s;
+                    breakTime = parseInt(document.getElementById('breakSeconds').value) || 0;
+                    totalRounds = parseInt(document.getElementById('rounds').value) || 1;
+                    if (intervalTime === 0) return;
+                    currentRound = 1;
+                    remaining = intervalTime;
+                    onBreak = false;
+                    playChime();
+                }
+                running = true;
+                timer = setInterval(tick, 1000);
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = '';
+                document.getElementById('resetBtn').style.display = '';
+                document.getElementById('settingsPanel').style.opacity = '0.5';
+                document.getElementById('settingsPanel').style.pointerEvents = 'none';
+                updateDisplay();
+            }
+        }
+
+        function pauseIntervals() {
+            clearInterval(timer);
+            running = false;
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('startBtn').innerHTML = '&#9654; Resume';
+            document.getElementById('pauseBtn').style.display = 'none';
+        }
+
+        function resetIntervals() {
+            clearInterval(timer);
+            running = false;
+            currentRound = 0;
+            remaining = 0;
+            onBreak = false;
+            document.getElementById('display').textContent = '00:00';
+            document.getElementById('roundInfo').textContent = 'Ready';
+            document.getElementById('roundInfo').style.color = '';
+            document.getElementById('progress').style.width = '100%';
+            document.getElementById('startBtn').style.display = '';
+            document.getElementById('startBtn').innerHTML = '&#9654; Start';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('settingsPanel').style.opacity = '';
+            document.getElementById('settingsPanel').style.pointerEvents = '';
+        }
+    </script>
+</body>
+</html>
