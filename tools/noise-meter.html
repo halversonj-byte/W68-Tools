@@ -55,6 +55,16 @@
             margin-bottom: 1rem;
             color: var(--text-light);
         }
+        .error-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #991b1b;
+            font-size: 0.95rem;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -68,7 +78,8 @@
             <div id="permissionPrompt" class="mic-permission">
                 <p>This tool uses your device's microphone to measure classroom noise levels.</p>
                 <p>No audio is recorded or stored - it only measures volume.</p>
-                <button class="btn btn-primary btn-large" onclick="startMeter()">&#127908; Enable Microphone</button>
+                <button class="btn btn-primary btn-large" id="enableMicBtn">Enable Microphone</button>
+                <div class="error-message" id="errorMessage"></div>
             </div>
             <div id="meterDisplay" style="display:none;">
                 <div class="meter-container" id="meterBars"></div>
@@ -94,22 +105,32 @@
         </div>
 
         <div class="btn-group" id="controlButtons" style="display:none;">
-            <button class="btn btn-danger" onclick="stopMeter()">&#9724; Stop</button>
+            <button class="btn btn-danger" id="stopMicBtn">&#9724; Stop</button>
         </div>
     </div>
 
     <script src="../js/sounds.js"></script>
     <script>
-        let audioCtx, analyser, microphone, animFrame;
-        let alertCooldown = false;
-        const NUM_BARS = 20;
+        var audioCtx, analyser, microphone, animFrame;
+        var alertCooldown = false;
+        var NUM_BARS = 20;
 
-        // Create bars
+        function showError(msg) {
+            var el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            var el = document.getElementById('errorMessage');
+            el.style.display = 'none';
+        }
+
         function initBars() {
-            const container = document.getElementById('meterBars');
+            var container = document.getElementById('meterBars');
             container.innerHTML = '';
-            for (let i = 0; i < NUM_BARS; i++) {
-                const bar = document.createElement('div');
+            for (var i = 0; i < NUM_BARS; i++) {
+                var bar = document.createElement('div');
                 bar.className = 'meter-bar';
                 bar.style.height = '4px';
                 bar.style.background = getBarColor(i / NUM_BARS);
@@ -133,21 +154,24 @@
             return { label: 'Way Too Loud!', desc: 'Stop and reset!', color: '#c0392b' };
         }
 
-        async function startMeter() {
-            // Check for secure context (HTTPS required for microphone access)
-            if (!window.isSecureContext) {
-                alert('Microphone access requires HTTPS. Please access this site using https:// instead of http://');
+        function startMeter() {
+            hideError();
+
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                showError('Microphone access requires HTTPS. Please access this site using https:// instead of http://');
                 return;
             }
 
-            // Check if getUserMedia is available
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Your browser does not support microphone access. Please use a modern browser like Chrome, Firefox, or Edge.');
+                showError('Your browser does not support microphone access. Please use a modern browser like Chrome, Firefox, or Edge.');
                 return;
             }
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            var btn = document.getElementById('enableMicBtn');
+            btn.textContent = 'Requesting access...';
+            btn.disabled = true;
+
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
                 microphone = audioCtx.createMediaStreamSource(stream);
@@ -161,54 +185,55 @@
                 document.getElementById('controlButtons').style.display = '';
                 initBars();
                 updateMeter();
-            } catch (err) {
+            }).catch(function(err) {
+                btn.textContent = 'Enable Microphone';
+                btn.disabled = false;
+
                 if (err.name === 'NotAllowedError') {
-                    alert('Microphone access was denied. Please click the lock/site icon in your browser address bar, allow microphone access, and reload the page.');
+                    showError('Microphone access was denied. Please click the lock/site icon in your browser address bar, allow microphone access, and reload the page.');
                 } else if (err.name === 'NotFoundError') {
-                    alert('No microphone found. Please connect a microphone and try again.');
+                    showError('No microphone found. Please connect a microphone and try again.');
                 } else {
-                    alert('Could not access microphone: ' + err.message + '. Please allow microphone access and try again.');
+                    showError('Could not access microphone: ' + err.message);
                 }
-            }
+            });
         }
 
         function updateMeter() {
-            const data = new Uint8Array(analyser.frequencyBinCount);
+            var data = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(data);
 
-            // Calculate average volume (0-100)
-            const avg = data.reduce((sum, val) => sum + val, 0) / data.length;
-            const volume = Math.min(100, (avg / 128) * 100);
+            var sum = 0;
+            for (var j = 0; j < data.length; j++) sum += data[j];
+            var avg = sum / data.length;
+            var volume = Math.min(100, (avg / 128) * 100);
 
-            // Update bars
-            const bars = document.querySelectorAll('.meter-bar');
-            bars.forEach((bar, i) => {
-                const barThreshold = (i / NUM_BARS) * 100;
+            var bars = document.querySelectorAll('.meter-bar');
+            for (var i = 0; i < bars.length; i++) {
+                var barThreshold = (i / NUM_BARS) * 100;
                 if (volume > barThreshold) {
-                    const height = Math.min(300, ((volume - barThreshold) / 100) * 300 + 8);
-                    bar.style.height = height + 'px';
-                    bar.style.opacity = '1';
+                    var height = Math.min(300, ((volume - barThreshold) / 100) * 300 + 8);
+                    bars[i].style.height = height + 'px';
+                    bars[i].style.opacity = '1';
                 } else {
-                    bar.style.height = '4px';
-                    bar.style.opacity = '0.3';
+                    bars[i].style.height = '4px';
+                    bars[i].style.opacity = '0.3';
                 }
-            });
+            }
 
-            // Update label
-            const level = getLevel(volume);
+            var level = getLevel(volume);
             document.getElementById('levelLabel').textContent = level.label;
             document.getElementById('levelLabel').style.color = level.color;
             document.getElementById('levelDesc').textContent = level.desc;
 
-            // Check threshold
-            const threshold = parseInt(document.getElementById('threshold').value);
-            const meterBox = document.getElementById('meterBox');
+            var threshold = parseInt(document.getElementById('threshold').value);
+            var meterBox = document.getElementById('meterBox');
             if (volume > threshold) {
                 meterBox.classList.add('alert-flash');
                 if (!alertCooldown && document.getElementById('alertSound').checked) {
                     playWarning();
                     alertCooldown = true;
-                    setTimeout(() => { alertCooldown = false; }, 3000);
+                    setTimeout(function() { alertCooldown = false; }, 3000);
                 }
             } else {
                 meterBox.classList.remove('alert-flash');
@@ -226,7 +251,13 @@
             document.getElementById('settingsPanel').style.display = 'none';
             document.getElementById('controlButtons').style.display = 'none';
             document.getElementById('meterBox').classList.remove('alert-flash');
+            var btn = document.getElementById('enableMicBtn');
+            btn.textContent = 'Enable Microphone';
+            btn.disabled = false;
         }
+
+        document.getElementById('enableMicBtn').addEventListener('click', startMeter);
+        document.getElementById('stopMicBtn').addEventListener('click', stopMeter);
     </script>
 </body>
 </html>
