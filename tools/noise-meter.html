@@ -111,7 +111,7 @@
 
     <script src="../js/sounds.js"></script>
     <script>
-        var audioCtx, analyser, microphone, animFrame;
+        var meterCtx, analyser, microphone, animFrame;
         var alertCooldown = false;
         var NUM_BARS = 20;
 
@@ -172,9 +172,9 @@
             btn.disabled = true;
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                microphone = audioCtx.createMediaStreamSource(stream);
+                meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = meterCtx.createAnalyser();
+                microphone = meterCtx.createMediaStreamSource(stream);
                 analyser.fftSize = 256;
                 analyser.smoothingTimeConstant = 0.8;
                 microphone.connect(analyser);
@@ -245,7 +245,7 @@
         function stopMeter() {
             if (animFrame) cancelAnimationFrame(animFrame);
             if (microphone) microphone.disconnect();
-            if (audioCtx) audioCtx.close();
+            if (meterCtx) meterCtx.close();
             document.getElementById('permissionPrompt').style.display = '';
             document.getElementById('meterDisplay').style.display = 'none';
             document.getElementById('settingsPanel').style.display = 'none';
