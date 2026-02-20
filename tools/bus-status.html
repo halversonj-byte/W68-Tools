@@ -290,7 +290,7 @@
 
     <div class="setup-banner" id="setupBanner" style="display:none;">
         Real-time sync is not configured &mdash; changes will only appear on this device.
-        See the source code comments for Firebase setup instructions.
+        See the source code comments for Supabase setup instructions.
         <span class="dismiss" onclick="this.parentElement.style.display='none'" title="Dismiss">&times;</span>
     </div>
 
@@ -304,45 +304,50 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (loaded from CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <!-- Supabase SDK (loaded from CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // =====================================================
-        //  FIREBASE CONFIGURATION
+        //  SUPABASE CONFIGURATION
         // =====================================================
+        //  Supabase is a free, open-source backend service that
+        //  provides real-time database sync. It is NOT Google/Firebase.
+        //
         //  To enable real-time sync across multiple devices:
         //
-        //  1. Go to  https://console.firebase.google.com
-        //  2. Click "Create a project" (name it e.g. "tj-bus-status")
-        //  3. Once created, click the web icon (</>) to register a web app
-        //  4. Copy the firebaseConfig values into the object below
-        //  5. In the Firebase console go to Build > Realtime Database
-        //  6. Click "Create Database", pick your region, start in TEST mode
-        //  7. Reload this page — all devices sharing the URL will now sync
+        //  1. Go to  https://supabase.com  and create a free account
+        //  2. Click "New Project", name it e.g. "tj-bus-status"
+        //  3. Wait for the project to finish provisioning
+        //  4. Go to the SQL Editor (left sidebar) and run this SQL:
         //
-        //  Recommended Realtime Database rules for production:
-        //  {
-        //    "rules": {
-        //      "bus-status": { ".read": true, ".write": true }
-        //    }
-        //  }
+        //     CREATE TABLE bus_status (
+        //         bus_number INTEGER PRIMARY KEY,
+        //         status TEXT NOT NULL DEFAULT 'waiting'
+        //     );
+        //
+        //     INSERT INTO bus_status (bus_number, status)
+        //     VALUES (1,'waiting'),(2,'waiting'),(3,'waiting'),(4,'waiting'),
+        //            (5,'waiting'),(6,'waiting'),(7,'waiting'),(8,'waiting'),
+        //            (9,'waiting'),(10,'waiting'),(11,'waiting'),(12,'waiting');
+        //
+        //     ALTER TABLE bus_status DISABLE ROW LEVEL SECURITY;
+        //
+        //     ALTER PUBLICATION supabase_realtime ADD TABLE bus_status;
+        //
+        //  5. Go to Settings > API (left sidebar)
+        //  6. Copy the "Project URL" into SUPABASE_URL below
+        //  7. Copy the "anon public" key into SUPABASE_KEY below
+        //  8. Deploy this page to GitHub Pages — all devices will sync!
+        //
         // =====================================================
-        const FIREBASE_CONFIG = {
-            apiKey:            "",
-            authDomain:        "",
-            databaseURL:       "",
-            projectId:         "",
-            storageBucket:     "",
-            messagingSenderId: "",
-            appId:             ""
-        };
+        var SUPABASE_URL = '';
+        var SUPABASE_KEY = '';
 
         // =====================================================
         //  BUS CONFIGURATION — change the count if needed
         // =====================================================
-        const BUS_COUNT = 12;
+        var BUS_COUNT = 12;
 
         // =====================================================
         //  BUS SVG ICON (side-view school bus)
@@ -368,14 +373,14 @@
         // =====================================================
         var STATES = ['waiting', 'late', 'arrived'];
         var busStates = {};
-        var firebaseReady = false;
-        var dbRef = null;
+        var syncReady = false;
+        var sb = null;   // Supabase client
         var adminMode = false;
 
         // ---------- Initialise ----------
         function init() {
             createBusCards();
-            initFirebase();
+            initSync();
         }
 
         // ---------- Build the grid ----------
@@ -422,8 +427,12 @@
             busStates[busNumber] = next;
             updateBusCard(busNumber, true);
 
-            if (firebaseReady && dbRef) {
-                dbRef.child(String(busNumber)).set(next);
+            if (syncReady && sb) {
+                sb.from('bus_status')
+                  .upsert({ bus_number: busNumber, status: next })
+                  .then(function (res) {
+                      if (res.error) console.error('Sync error:', res.error);
+                  });
             }
         }
 
@@ -452,47 +461,73 @@
             }
         }
 
-        // ---------- Firebase ----------
-        function initFirebase() {
-            if (!FIREBASE_CONFIG.apiKey) {
+        // ---------- Connection status helper ----------
+        function setConnectionStatus(state, message) {
+            var dot  = document.getElementById('connectionDot');
+            var text = document.getElementById('connectionText');
+            dot.className = 'connection-dot' + (state === 'online' ? '' : state === 'offline' ? ' offline' : ' local');
+            text.textContent = message;
+        }
+
+        // ---------- Supabase real-time sync ----------
+        function initSync() {
+            if (!SUPABASE_URL || !SUPABASE_KEY) {
                 document.getElementById('setupBanner').style.display = '';
                 return;
             }
 
             try {
-                firebase.initializeApp(FIREBASE_CONFIG);
-                var db = firebase.database();
-                dbRef = db.ref('bus-status');
+                sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-                // Real-time listener
-                dbRef.on('value', function (snapshot) {
-                    var data = snapshot.val() || {};
-                    for (var i = 1; i <= BUS_COUNT; i++) {
-                        var incoming = data[i] || 'waiting';
-                        if (busStates[i] !== incoming) {
-                            busStates[i] = incoming;
-                            updateBusCard(i, true);
-                        }
-                    }
-                });
+                // Load initial state
+                sb.from('bus_status')
+                  .select('bus_number, status')
+                  .then(function (res) {
+                      if (res.error) {
+                          console.error('Initial load error:', res.error);
+                          setConnectionStatus('offline', 'Load Error');
+                          return;
+                      }
+                      if (res.data) {
+                          for (var k = 0; k < res.data.length; k++) {
+                              var row = res.data[k];
+                              if (busStates[row.bus_number] !== undefined) {
+                                  busStates[row.bus_number] = row.status;
+                                  updateBusCard(row.bus_number, false);
+                              }
+                          }
+                      }
+                  });
 
-                // Connection monitor
-                db.ref('.info/connected').on('value', function (snap) {
-                    var dot  = document.getElementById('connectionDot');
-                    var text = document.getElementById('connectionText');
-                    if (snap.val() === true) {
-                        dot.className  = 'connection-dot';
-                        text.textContent = 'Connected';
-                        firebaseReady = true;
-                    } else {
-                        dot.className  = 'connection-dot offline';
-                        text.textContent = 'Reconnecting\u2026';
-                    }
-                });
+                // Subscribe to real-time changes
+                sb.channel('bus-board')
+                  .on(
+                      'postgres_changes',
+                      { event: '*', schema: 'public', table: 'bus_status' },
+                      function (payload) {
+                          var row = payload.new;
+                          if (row && busStates[row.bus_number] !== undefined) {
+                              if (busStates[row.bus_number] !== row.status) {
+                                  busStates[row.bus_number] = row.status;
+                                  updateBusCard(row.bus_number, true);
+                              }
+                          }
+                      }
+                  )
+                  .subscribe(function (status) {
+                      if (status === 'SUBSCRIBED') {
+                          syncReady = true;
+                          setConnectionStatus('online', 'Connected');
+                      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                          setConnectionStatus('offline', 'Connection Error');
+                      } else if (status === 'CLOSED') {
+                          syncReady = false;
+                          setConnectionStatus('offline', 'Disconnected');
+                      }
+                  });
 
-                firebaseReady = true;
             } catch (err) {
-                console.error('Firebase init error:', err);
+                console.error('Supabase init error:', err);
                 document.getElementById('setupBanner').style.display = '';
             }
         }
@@ -506,12 +541,16 @@
                 updateBusCard(i, false);
             }
 
-            if (firebaseReady && dbRef) {
-                var updates = {};
+            if (syncReady && sb) {
+                var updates = [];
                 for (var j = 1; j <= BUS_COUNT; j++) {
-                    updates[j] = 'waiting';
+                    updates.push({ bus_number: j, status: 'waiting' });
                 }
-                dbRef.set(updates);
+                sb.from('bus_status')
+                  .upsert(updates)
+                  .then(function (res) {
+                      if (res.error) console.error('Reset error:', res.error);
+                  });
             }
         }
 
