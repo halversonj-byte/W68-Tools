@@ -6,7 +6,7 @@
     <title>Noise Meter - W68 Teacher Tools</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        :root { --tool-color: #00bcd4; }
+        :root { --tool-color: #4a90c4; }
         .meter-container {
             position: relative;
             height: 350px;
@@ -134,6 +134,18 @@
         }
 
         async function startMeter() {
+            // Check for secure context (HTTPS required for microphone access)
+            if (!window.isSecureContext) {
+                alert('Microphone access requires HTTPS. Please access this site using https:// instead of http://');
+                return;
+            }
+
+            // Check if getUserMedia is available
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Your browser does not support microphone access. Please use a modern browser like Chrome, Firefox, or Edge.');
+                return;
+            }
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -150,7 +162,13 @@
                 initBars();
                 updateMeter();
             } catch (err) {
-                alert('Could not access microphone. Please allow microphone access and try again.');
+                if (err.name === 'NotAllowedError') {
+                    alert('Microphone access was denied. Please click the lock/site icon in your browser address bar, allow microphone access, and reload the page.');
+                } else if (err.name === 'NotFoundError') {
+                    alert('No microphone found. Please connect a microphone and try again.');
+                } else {
+                    alert('Could not access microphone: ' + err.message + '. Please allow microphone access and try again.');
+                }
             }
         }
 
