@@ -173,18 +173,27 @@
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
                 meterCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = meterCtx.createAnalyser();
-                microphone = meterCtx.createMediaStreamSource(stream);
-                analyser.fftSize = 256;
-                analyser.smoothingTimeConstant = 0.8;
-                microphone.connect(analyser);
+                return meterCtx.resume().then(function() {
+                    analyser = meterCtx.createAnalyser();
+                    microphone = meterCtx.createMediaStreamSource(stream);
+                    analyser.fftSize = 256;
+                    analyser.smoothingTimeConstant = 0.8;
+                    microphone.connect(analyser);
 
-                document.getElementById('permissionPrompt').style.display = 'none';
-                document.getElementById('meterDisplay').style.display = '';
-                document.getElementById('settingsPanel').style.display = '';
-                document.getElementById('controlButtons').style.display = '';
-                initBars();
-                updateMeter();
+                    // Connect to destination through silent gain node
+                    // (some browsers need this for the analyser to process data)
+                    var silentGain = meterCtx.createGain();
+                    silentGain.gain.value = 0;
+                    analyser.connect(silentGain);
+                    silentGain.connect(meterCtx.destination);
+
+                    document.getElementById('permissionPrompt').style.display = 'none';
+                    document.getElementById('meterDisplay').style.display = '';
+                    document.getElementById('settingsPanel').style.display = '';
+                    document.getElementById('controlButtons').style.display = '';
+                    initBars();
+                    updateMeter();
+                });
             }).catch(function(err) {
                 btn.textContent = 'Enable Microphone';
                 btn.disabled = false;
