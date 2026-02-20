@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bus Status - Thomas Jefferson Junior High</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #1565c0; }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #263238;
+            overflow: hidden;
+        }
+
+        /* ---- Header ---- */
+        .bus-header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            text-align: center;
+            padding: 1rem 1rem 0.75rem;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .bus-header .back-link {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .bus-header .back-link:hover {
+            opacity: 1;
+        }
+
+        .bus-header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .bus-header .subtitle {
+            font-size: 1.4rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .clock {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.6rem;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ---- Setup Banner ---- */
+        .setup-banner {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.6rem 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .setup-banner .dismiss {
+            cursor: pointer;
+            margin-left: 0.75rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            vertical-align: middle;
+        }
+
+        /* ---- Bus Grid ---- */
+        .bus-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        /* ---- Bus Card ---- */
+        .bus-card {
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition: background 0.35s ease, box-shadow 0.35s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .bus-card:active {
+            transform: scale(0.96);
+        }
+
+        .bus-icon {
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 0.15rem;
+        }
+
+        .bus-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .bus-status-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 0.15rem;
+            min-height: 1.6rem;
+        }
+
+        /* --- Card States --- */
+        .bus-card.waiting {
+            background: #455a64;
+        }
+
+        .bus-card.waiting .bus-status-text {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        .bus-card.late {
+            background: linear-gradient(145deg, #e53935, #c62828);
+            animation: pulse-red 2s ease-in-out infinite;
+        }
+
+        .bus-card.late .bus-status-text {
+            color: #fff;
+        }
+
+        .bus-card.arrived {
+            background: linear-gradient(145deg, #43a047, #2e7d32);
+        }
+
+        .bus-card.arrived .bus-status-text {
+            color: #fff;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+            50%       { box-shadow: 0 4px 30px rgba(229, 57, 53, 0.6); }
+        }
+
+        @keyframes card-pop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+
+        .bus-card.pop {
+            animation: card-pop 0.25s ease;
+        }
+
+        /* ---- Footer ---- */
+        .bus-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 1.25rem;
+            background: #1a2327;
+            flex-shrink: 0;
+        }
+
+        .reset-btn {
+            background: #546e7a;
+            color: white;
+            border: none;
+            padding: 0.45rem 1.1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+
+        .reset-btn:hover {
+            background: #78909c;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.8rem;
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #43a047;
+            flex-shrink: 0;
+        }
+
+        .connection-dot.offline { background: #e53935; }
+        .connection-dot.local   { background: #ffa726; }
+
+        /* ---- Responsive: Tablet ---- */
+        @media (max-width: 900px) {
+            .bus-grid {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+            }
+            .bus-header h1 { font-size: 1.6rem; }
+            .bus-header .subtitle { font-size: 1.05rem; }
+            .clock { font-size: 1.2rem; }
+            .bus-icon { font-size: 2.25rem; }
+            .bus-number { font-size: 1.5rem; }
+            .bus-status-text { font-size: 1.05rem; }
+        }
+
+        /* ---- Responsive: Phone ---- */
+        @media (max-width: 600px) {
+            body { overflow: auto; }
+            .bus-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(6, 1fr);
+                gap: 0.65rem;
+                padding: 0.65rem;
+            }
+            .bus-header { padding: 0.75rem 0.5rem 0.5rem; }
+            .bus-header h1 { font-size: 1.2rem; }
+            .bus-header .subtitle { font-size: 0.85rem; }
+            .bus-header .back-link { font-size: 1.2rem; left: 0.5rem; }
+            .clock { position: static; margin-top: 0.15rem; font-size: 1rem; }
+            .bus-icon { font-size: 1.75rem; }
+            .bus-number { font-size: 1.2rem; }
+            .bus-status-text { font-size: 0.85rem; min-height: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bus-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Thomas Jefferson Junior High</h1>
+        <div class="subtitle">Bus Status</div>
+        <div class="clock" id="clock"></div>
+    </header>
+
+    <div class="setup-banner" id="setupBanner" style="display:none;">
+        Real-time sync is not configured &mdash; changes will only appear on this device.
+        See the source code comments for Firebase setup instructions.
+        <span class="dismiss" onclick="this.parentElement.style.display='none'" title="Dismiss">&times;</span>
+    </div>
+
+    <main class="bus-grid" id="busGrid"></main>
+
+    <footer class="bus-footer">
+        <button class="reset-btn" onclick="resetAll()">&#8634; Reset All</button>
+        <div class="connection-status">
+            <div class="connection-dot local" id="connectionDot"></div>
+            <span id="connectionText">Local Only</span>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK (loaded from CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+    <script>
+        // =====================================================
+        //  FIREBASE CONFIGURATION
+        // =====================================================
+        //  To enable real-time sync across multiple devices:
+        //
+        //  1. Go to  https://console.firebase.google.com
+        //  2. Click "Create a project" (name it e.g. "tj-bus-status")
+        //  3. Once created, click the web icon (</>) to register a web app
+        //  4. Copy the firebaseConfig values into the object below
+        //  5. In the Firebase console go to Build > Realtime Database
+        //  6. Click "Create Database", pick your region, start in TEST mode
+        //  7. Reload this page — all devices sharing the URL will now sync
+        //
+        //  Recommended Realtime Database rules for production:
+        //  {
+        //    "rules": {
+        //      "bus-status": { ".read": true, ".write": true }
+        //    }
+        //  }
+        // =====================================================
+        const FIREBASE_CONFIG = {
+            apiKey:            "",
+            authDomain:        "",
+            databaseURL:       "",
+            projectId:         "",
+            storageBucket:     "",
+            messagingSenderId: "",
+            appId:             ""
+        };
+
+        // =====================================================
+        //  BUS CONFIGURATION — change the count if needed
+        // =====================================================
+        const BUS_COUNT = 12;
+
+        // =====================================================
+        //  APPLICATION CODE
+        // =====================================================
+        const STATES = ['waiting', 'late', 'arrived'];
+        let busStates = {};
+        let firebaseReady = false;
+        let dbRef = null;
+
+        // ---------- Initialise ----------
+        function init() {
+            createBusCards();
+            startClock();
+            initFirebase();
+        }
+
+        // ---------- Build the grid ----------
+        function createBusCards() {
+            const grid = document.getElementById('busGrid');
+            for (let i = 1; i <= BUS_COUNT; i++) {
+                busStates[i] = 'waiting';
+                const card = document.createElement('div');
+                card.className = 'bus-card waiting';
+                card.dataset.bus = i;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', 'Bus ' + i + ' – tap to change status');
+                card.onclick = function () { toggleBus(i); };
+                card.innerHTML =
+                    '<div class="bus-icon">&#128652;</div>' +
+                    '<div class="bus-number">Bus ' + i + '</div>' +
+                    '<div class="bus-status-text"></div>';
+                grid.appendChild(card);
+            }
+        }
+
+        // ---------- Toggle a bus ----------
+        function toggleBus(busNumber) {
+            var idx = STATES.indexOf(busStates[busNumber]);
+            var next = STATES[(idx + 1) % STATES.length];
+            busStates[busNumber] = next;
+            updateBusCard(busNumber, true);
+
+            if (firebaseReady && dbRef) {
+                dbRef.child(String(busNumber)).set(next);
+            }
+        }
+
+        // ---------- Render one card ----------
+        function updateBusCard(busNumber, animate) {
+            var card = document.querySelector('[data-bus="' + busNumber + '"]');
+            if (!card) return;
+
+            card.className = 'bus-card ' + busStates[busNumber];
+            var label = card.querySelector('.bus-status-text');
+
+            if (busStates[busNumber] === 'late') {
+                label.textContent = 'LATE';
+            } else if (busStates[busNumber] === 'arrived') {
+                label.textContent = 'ARRIVED';
+            } else {
+                label.textContent = '';
+            }
+
+            if (animate) {
+                card.classList.add('pop');
+                setTimeout(function () { card.classList.remove('pop'); }, 260);
+            }
+        }
+
+        // ---------- Firebase ----------
+        function initFirebase() {
+            if (!FIREBASE_CONFIG.apiKey) {
+                document.getElementById('setupBanner').style.display = '';
+                return;
+            }
+
+            try {
+                firebase.initializeApp(FIREBASE_CONFIG);
+                var db = firebase.database();
+                dbRef = db.ref('bus-status');
+
+                // Real-time listener
+                dbRef.on('value', function (snapshot) {
+                    var data = snapshot.val() || {};
+                    for (var i = 1; i <= BUS_COUNT; i++) {
+                        var incoming = data[i] || 'waiting';
+                        if (busStates[i] !== incoming) {
+                            busStates[i] = incoming;
+                            updateBusCard(i, true);
+                        }
+                    }
+                });
+
+                // Connection monitor
+                db.ref('.info/connected').on('value', function (snap) {
+                    var dot  = document.getElementById('connectionDot');
+                    var text = document.getElementById('connectionText');
+                    if (snap.val() === true) {
+                        dot.className  = 'connection-dot';
+                        text.textContent = 'Connected';
+                        firebaseReady = true;
+                    } else {
+                        dot.className  = 'connection-dot offline';
+                        text.textContent = 'Reconnecting\u2026';
+                    }
+                });
+
+                firebaseReady = true;
+            } catch (err) {
+                console.error('Firebase init error:', err);
+                document.getElementById('setupBanner').style.display = '';
+            }
+        }
+
+        // ---------- Reset all buses ----------
+        function resetAll() {
+            if (!confirm('Reset all buses to waiting?')) return;
+
+            for (var i = 1; i <= BUS_COUNT; i++) {
+                busStates[i] = 'waiting';
+                updateBusCard(i, false);
+            }
+
+            if (firebaseReady && dbRef) {
+                var updates = {};
+                for (var i = 1; i <= BUS_COUNT; i++) {
+                    updates[i] = 'waiting';
+                }
+                dbRef.set(updates);
+            }
+        }
+
+        // ---------- Live clock ----------
+        function startClock() {
+            function tick() {
+                var now = new Date();
+                document.getElementById('clock').textContent =
+                    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        // ---------- Keyboard shortcut: digits to toggle ----------
+        document.addEventListener('keydown', function (e) {
+            var n = parseInt(e.key, 10);
+            if (n >= 1 && n <= 9) toggleBus(n);
+            if (e.key === '0') toggleBus(10);
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
