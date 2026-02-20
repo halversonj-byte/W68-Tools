@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bus Status - Thomas Jefferson Junior High</title>
+    <title>Bus Board - Thomas Jefferson Junior High</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
         :root { --tool-color: #1565c0; }
@@ -11,74 +11,94 @@
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            background: #263238;
+            height: 100vh;
+            background: #0d1b2a;
             overflow: hidden;
+            margin: 0;
         }
 
         /* ---- Header ---- */
         .bus-header {
-            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            background: #0d1b2a;
             color: white;
-            text-align: center;
-            padding: 1rem 1rem 0.75rem;
-            position: relative;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
             flex-shrink: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .bus-header .back-link {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
             color: white;
             text-decoration: none;
-            font-size: 1.5rem;
-            opacity: 0.5;
+            font-size: 1.4rem;
+            opacity: 0.4;
+            margin-right: 1rem;
             transition: opacity 0.2s;
+            line-height: 1;
         }
 
         .bus-header .back-link:hover {
             opacity: 1;
         }
 
+        .header-titles {
+            flex: 1;
+        }
+
         .bus-header h1 {
-            font-size: 2.25rem;
+            font-size: 1.75rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.15;
+            margin: 0;
         }
 
         .bus-header .subtitle {
-            font-size: 1.4rem;
+            font-size: 1.15rem;
             font-weight: 400;
-            opacity: 0.9;
+            opacity: 0.7;
         }
 
-        .clock {
-            position: absolute;
-            right: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.6rem;
+        .admin-btn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
             font-weight: 600;
-            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .admin-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .admin-btn.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         /* ---- Setup Banner ---- */
         .setup-banner {
-            background: #fff3cd;
-            color: #856404;
-            padding: 0.6rem 1.5rem;
+            background: #1b2838;
+            color: #ffa726;
+            padding: 0.5rem 1.5rem;
             text-align: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .setup-banner .dismiss {
             cursor: pointer;
             margin-left: 0.75rem;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             vertical-align: middle;
         }
 
@@ -88,86 +108,90 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(3, 1fr);
-            gap: 1rem;
-            padding: 1rem;
+            gap: 0.75rem;
+            padding: 0.75rem;
         }
 
         /* ---- Bus Card ---- */
         .bus-card {
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             user-select: none;
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            transition: background 0.35s ease, box-shadow 0.35s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
             position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
-        .bus-card:active {
+        .bus-card.editable {
+            cursor: pointer;
+        }
+
+        .bus-card.editable:active {
             transform: scale(0.96);
         }
 
         .bus-icon {
-            font-size: 3rem;
-            line-height: 1;
-            margin-bottom: 0.15rem;
+            width: clamp(2.5rem, 5vh, 4.5rem);
+            height: clamp(2rem, 4vh, 3.5rem);
+            margin-bottom: 0.1rem;
+        }
+
+        .bus-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .bus-number {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: clamp(3rem, 9vh, 7rem);
+            font-weight: 800;
             color: white;
+            line-height: 1;
         }
 
         .bus-status-text {
-            font-size: 1.35rem;
+            font-size: clamp(0.9rem, 2.2vh, 1.5rem);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 0.15rem;
-            min-height: 1.6rem;
+            letter-spacing: 0.15em;
+            color: rgba(255, 255, 255, 0.9);
+            min-height: clamp(1rem, 2.5vh, 1.6rem);
+            margin-top: 0.1rem;
         }
 
-        /* --- Card States --- */
+        /* ---- Card States ---- */
         .bus-card.waiting {
-            background: #455a64;
+            background: #1b3a5c;
         }
 
         .bus-card.waiting .bus-status-text {
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.3);
         }
 
         .bus-card.late {
-            background: linear-gradient(145deg, #e53935, #c62828);
+            background: #dc2626;
+            border-color: rgba(255, 255, 255, 0.2);
             animation: pulse-red 2s ease-in-out infinite;
         }
 
-        .bus-card.late .bus-status-text {
-            color: #fff;
-        }
-
         .bus-card.arrived {
-            background: linear-gradient(145deg, #43a047, #2e7d32);
-        }
-
-        .bus-card.arrived .bus-status-text {
-            color: #fff;
+            background: #22c55e;
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
-            50%       { box-shadow: 0 4px 30px rgba(229, 57, 53, 0.6); }
+            0%, 100% { box-shadow: 0 0 0 rgba(220, 38, 38, 0); }
+            50%       { box-shadow: 0 0 30px rgba(220, 38, 38, 0.5); }
         }
 
         @keyframes card-pop {
             0%   { transform: scale(1); }
-            50%  { transform: scale(1.04); }
+            50%  { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
 
@@ -175,22 +199,27 @@
             animation: card-pop 0.25s ease;
         }
 
-        /* ---- Footer ---- */
-        .bus-footer {
-            display: flex;
+        /* ---- Admin Toolbar ---- */
+        .admin-toolbar {
+            display: none;
+            padding: 0.5rem 1.25rem;
+            background: #0a1220;
+            flex-shrink: 0;
             justify-content: space-between;
             align-items: center;
-            padding: 0.6rem 1.25rem;
-            background: #1a2327;
-            flex-shrink: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-toolbar.visible {
+            display: flex;
         }
 
         .reset-btn {
-            background: #546e7a;
+            background: #374151;
             color: white;
             border: none;
-            padding: 0.45rem 1.1rem;
-            border-radius: 8px;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
@@ -199,14 +228,14 @@
         }
 
         .reset-btn:hover {
-            background: #78909c;
+            background: #4b5563;
         }
 
         .connection-status {
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            color: rgba(255, 255, 255, 0.55);
+            color: rgba(255, 255, 255, 0.45);
             font-size: 0.8rem;
         }
 
@@ -227,12 +256,8 @@
                 grid-template-columns: repeat(3, 1fr);
                 grid-template-rows: repeat(4, 1fr);
             }
-            .bus-header h1 { font-size: 1.6rem; }
-            .bus-header .subtitle { font-size: 1.05rem; }
-            .clock { font-size: 1.2rem; }
-            .bus-icon { font-size: 2.25rem; }
-            .bus-number { font-size: 1.5rem; }
-            .bus-status-text { font-size: 1.05rem; }
+            .bus-header h1 { font-size: 1.35rem; }
+            .bus-header .subtitle { font-size: 0.9rem; }
         }
 
         /* ---- Responsive: Phone ---- */
@@ -241,17 +266,14 @@
             .bus-grid {
                 grid-template-columns: repeat(2, 1fr);
                 grid-template-rows: repeat(6, 1fr);
-                gap: 0.65rem;
-                padding: 0.65rem;
+                gap: 0.5rem;
+                padding: 0.5rem;
             }
-            .bus-header { padding: 0.75rem 0.5rem 0.5rem; }
-            .bus-header h1 { font-size: 1.2rem; }
-            .bus-header .subtitle { font-size: 0.85rem; }
-            .bus-header .back-link { font-size: 1.2rem; left: 0.5rem; }
-            .clock { position: static; margin-top: 0.15rem; font-size: 1rem; }
-            .bus-icon { font-size: 1.75rem; }
-            .bus-number { font-size: 1.2rem; }
-            .bus-status-text { font-size: 0.85rem; min-height: 1.1rem; }
+            .bus-header { padding: 0.5rem 0.75rem; }
+            .bus-header h1 { font-size: 1.1rem; }
+            .bus-header .subtitle { font-size: 0.75rem; }
+            .bus-header .back-link { margin-right: 0.5rem; font-size: 1.1rem; }
+            .admin-btn { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
         }
     </style>
 </head>
@@ -259,9 +281,11 @@
 
     <header class="bus-header">
         <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
-        <h1>Thomas Jefferson Junior High</h1>
-        <div class="subtitle">Bus Status</div>
-        <div class="clock" id="clock"></div>
+        <div class="header-titles">
+            <h1>Thomas Jefferson Junior High</h1>
+            <div class="subtitle">Bus Board</div>
+        </div>
+        <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">Admin</button>
     </header>
 
     <div class="setup-banner" id="setupBanner" style="display:none;">
@@ -272,13 +296,13 @@
 
     <main class="bus-grid" id="busGrid"></main>
 
-    <footer class="bus-footer">
+    <div class="admin-toolbar" id="adminToolbar">
         <button class="reset-btn" onclick="resetAll()">&#8634; Reset All</button>
         <div class="connection-status">
             <div class="connection-dot local" id="connectionDot"></div>
             <span id="connectionText">Local Only</span>
         </div>
-    </footer>
+    </div>
 
     <!-- Firebase SDK (loaded from CDN) -->
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -321,41 +345,78 @@
         const BUS_COUNT = 12;
 
         // =====================================================
+        //  BUS SVG ICON (side-view school bus)
+        // =====================================================
+        var BUS_SVG =
+            '<svg viewBox="0 0 100 64" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' +
+            '<rect x="4" y="8" width="92" height="34" rx="5"/>' +
+            '<line x1="4" y1="22" x2="96" y2="22"/>' +
+            '<rect x="11" y="12" width="13" height="7" rx="2"/>' +
+            '<rect x="28" y="12" width="13" height="7" rx="2"/>' +
+            '<rect x="45" y="12" width="13" height="7" rx="2"/>' +
+            '<rect x="62" y="12" width="13" height="7" rx="2"/>' +
+            '<rect x="80" y="25" width="8" height="13" rx="2"/>' +
+            '<circle cx="24" cy="48" r="6"/>' +
+            '<circle cx="72" cy="48" r="6"/>' +
+            '<line x1="4" y1="42" x2="16" y2="42"/>' +
+            '<line x1="32" y1="42" x2="64" y2="42"/>' +
+            '<line x1="80" y1="42" x2="96" y2="42"/>' +
+            '</svg>';
+
+        // =====================================================
         //  APPLICATION CODE
         // =====================================================
-        const STATES = ['waiting', 'late', 'arrived'];
-        let busStates = {};
-        let firebaseReady = false;
-        let dbRef = null;
+        var STATES = ['waiting', 'late', 'arrived'];
+        var busStates = {};
+        var firebaseReady = false;
+        var dbRef = null;
+        var adminMode = false;
 
         // ---------- Initialise ----------
         function init() {
             createBusCards();
-            startClock();
             initFirebase();
         }
 
         // ---------- Build the grid ----------
         function createBusCards() {
-            const grid = document.getElementById('busGrid');
-            for (let i = 1; i <= BUS_COUNT; i++) {
+            var grid = document.getElementById('busGrid');
+            for (var i = 1; i <= BUS_COUNT; i++) {
                 busStates[i] = 'waiting';
-                const card = document.createElement('div');
+                var card = document.createElement('div');
                 card.className = 'bus-card waiting';
                 card.dataset.bus = i;
                 card.setAttribute('role', 'button');
-                card.setAttribute('aria-label', 'Bus ' + i + ' – tap to change status');
-                card.onclick = function () { toggleBus(i); };
+                card.setAttribute('aria-label', 'Bus ' + i + ' - tap to change status');
+                (function (num) {
+                    card.onclick = function () { toggleBus(num); };
+                })(i);
                 card.innerHTML =
-                    '<div class="bus-icon">&#128652;</div>' +
-                    '<div class="bus-number">Bus ' + i + '</div>' +
+                    '<div class="bus-icon">' + BUS_SVG + '</div>' +
+                    '<div class="bus-number">' + i + '</div>' +
                     '<div class="bus-status-text"></div>';
                 grid.appendChild(card);
             }
         }
 
+        // ---------- Admin mode ----------
+        function toggleAdmin() {
+            adminMode = !adminMode;
+            var btn = document.getElementById('adminBtn');
+            var toolbar = document.getElementById('adminToolbar');
+            btn.classList.toggle('active', adminMode);
+            toolbar.classList.toggle('visible', adminMode);
+
+            var cards = document.querySelectorAll('.bus-card');
+            for (var j = 0; j < cards.length; j++) {
+                cards[j].classList.toggle('editable', adminMode);
+            }
+        }
+
         // ---------- Toggle a bus ----------
         function toggleBus(busNumber) {
+            if (!adminMode) return;
+
             var idx = STATES.indexOf(busStates[busNumber]);
             var next = STATES[(idx + 1) % STATES.length];
             busStates[busNumber] = next;
@@ -371,9 +432,12 @@
             var card = document.querySelector('[data-bus="' + busNumber + '"]');
             if (!card) return;
 
-            card.className = 'bus-card ' + busStates[busNumber];
-            var label = card.querySelector('.bus-status-text');
+            // Preserve editable class
+            var classes = 'bus-card ' + busStates[busNumber];
+            if (adminMode) classes += ' editable';
+            card.className = classes;
 
+            var label = card.querySelector('.bus-status-text');
             if (busStates[busNumber] === 'late') {
                 label.textContent = 'LATE';
             } else if (busStates[busNumber] === 'arrived') {
@@ -444,26 +508,16 @@
 
             if (firebaseReady && dbRef) {
                 var updates = {};
-                for (var i = 1; i <= BUS_COUNT; i++) {
-                    updates[i] = 'waiting';
+                for (var j = 1; j <= BUS_COUNT; j++) {
+                    updates[j] = 'waiting';
                 }
                 dbRef.set(updates);
             }
         }
 
-        // ---------- Live clock ----------
-        function startClock() {
-            function tick() {
-                var now = new Date();
-                document.getElementById('clock').textContent =
-                    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-            }
-            tick();
-            setInterval(tick, 1000);
-        }
-
-        // ---------- Keyboard shortcut: digits to toggle ----------
+        // ---------- Keyboard shortcuts ----------
         document.addEventListener('keydown', function (e) {
+            if (!adminMode) return;
             var n = parseInt(e.key, 10);
             if (n >= 1 && n <= 9) toggleBus(n);
             if (e.key === '0') toggleBus(10);
