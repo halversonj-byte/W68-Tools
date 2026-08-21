@@ -90,6 +90,8 @@
                         <option value="2" selected>2 Partners</option>
                         <option value="3">3 Partners</option>
                         <option value="4">4 Partners</option>
+                        <option value="5">5 Partners</option>
+                        <option value="6">6 Partners</option>
                     </select>
                 </div>
             </div>
@@ -113,7 +115,7 @@
         function updatePartners() {
             numPartners = parseInt(document.getElementById('numTurns').value);
             const container = document.getElementById('turnIndicator');
-            const names = ['Partner A', 'Partner B', 'Partner C', 'Partner D'];
+            const names = ['Partner A', 'Partner B', 'Partner C', 'Partner D', 'Partner E', 'Partner F'];
             container.innerHTML = '';
             for (let i = 0; i < numPartners; i++) {
                 const div = document.createElement('div');
