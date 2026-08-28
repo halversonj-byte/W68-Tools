@@ -183,9 +183,9 @@ Option 4</textarea>
                     spinning = false;
                     document.getElementById('spinBtn').disabled = false;
 
-                    // Determine winner - pointer is at top (270deg in standard coords)
+                    // Determine winner - pointer is at top (270° in canvas coords)
                     const sliceAngle = 360 / options.length;
-                    const normalizedAngle = (360 - (rotation % 360)) % 360;
+                    const normalizedAngle = ((270 - (rotation % 360)) % 360 + 360) % 360;
                     const winnerIndex = Math.floor(normalizedAngle / sliceAngle) % options.length;
                     document.getElementById('result').textContent = options[winnerIndex];
                     playChime();
