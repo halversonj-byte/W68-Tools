@@ -189,7 +189,15 @@
             font-weight: 400;
             white-space: normal;
         }
-        .spin-btn {
+        .card-btns {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            width: 100%;
+        }
+        .reset-btn { display: none; }
+        .reset-btn.visible { display: inline-flex; }
+        .spin-btn, .reset-btn {
             padding: 0.35em 1em;
             font-size: clamp(0.7rem, calc(var(--wheel-size) * 0.08), 1rem);
             border-radius: 8px;
@@ -292,6 +300,21 @@
             font-size: 0.95rem;
         }
         .option-row .swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+        .option-row.removed .olabel { text-decoration: line-through; color: var(--text-light); }
+        .option-row.removed .swatch { opacity: 0.35; }
+        .restore-btn {
+            border: none;
+            background: #ecf0f1;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .restore-btn:hover { background: #dfe6e9; }
+        .r-note { font-size: 0.8rem; color: var(--text-light); font-weight: 600; flex-shrink: 0; }
         .option-row .olabel {
             flex: 1;
             min-width: 0;
@@ -468,6 +491,7 @@
                 <button class="btn btn-primary btn-large" id="spinAllBtn" onclick="spinAll()">&#10047; Spin All</button>
                 <button class="btn btn-primary" id="spinSelectedBtn" onclick="spinSelected()">&#10047; Spin Selected</button>
                 <button class="btn btn-secondary" id="addWheelBtn" onclick="addWheel()">+ Add Wheel</button>
+                <button class="btn btn-secondary" id="resetAllBtn" onclick="resetAll()" style="display:none">&#8634; Reset All</button>
                 <span class="wheel-count" id="wheelCount"></span>
                 <button class="btn btn-secondary" id="panelToggleBtn" onclick="togglePanel()">Hide Settings</button>
             </div>
@@ -550,6 +574,8 @@
                 entries: makeEntries(['Option 1', 'Option 2', 'Option 3', 'Option 4']),
                 weighted: false,
                 selected: false,    // included in "Spin Selected"
+                eliminate: false,   // remove the winning wedge after each spin until reset
+                removed: [],        // indexes into entries that are currently off the wheel
                 rotation: 0,
                 spinning: false,
                 batchId: null,      // which group of spins this wheel is part of while spinning
@@ -579,8 +605,21 @@
             return wheel.weighted ? entry.weight : 1;
         }
 
+        // Entries currently on the wheel (not eliminated), with their original index for colours.
+        function liveEntries(wheel) {
+            const out = [];
+            wheel.entries.forEach((e, i) => {
+                if (!wheel.removed.includes(i)) out.push({ entry: e, index: i });
+            });
+            return out;
+        }
+
+        function canSpin(wheel) {
+            return liveEntries(wheel).length >= 2;
+        }
+
         function totalWeight(wheel) {
-            return wheel.entries.reduce((sum, e) => sum + effectiveWeight(wheel, e), 0);
+            return liveEntries(wheel).reduce((sum, item) => sum + effectiveWeight(wheel, item.entry), 0);
         }
 
         function wedgeColor(index, count) {
@@ -599,7 +638,7 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
                     panelOpen: panelOpen,
-                    wheels: wheels.map(w => ({ name: w.name, weighted: w.weighted, selected: w.selected, entries: w.entries }))
+                    wheels: wheels.map(w => ({ name: w.name, weighted: w.weighted, selected: w.selected, eliminate: w.eliminate, removed: w.removed, entries: w.entries }))
                 }));
                 warning.classList.remove('active');
             } catch (e) {
@@ -628,6 +667,9 @@
                             image: cleanImage(e && e.image)
                         }))
                         .filter(e => e.label.length > 0);
+                    w.eliminate = !!saved.eliminate;
+                    w.removed = (Array.isArray(saved.removed) ? saved.removed : [])
+                        .filter(i => Number.isInteger(i) && i >= 0 && i < w.entries.length);
                     wheels.push(w);
                 });
             } catch (e) { /* corrupt or unavailable storage - start fresh */ }
@@ -711,7 +753,10 @@
                         <canvas width="400" height="400" aria-label="Spinner wheel"></canvas>
                     </div>
                     <div class="wheel-result"></div>
-                    <button class="btn btn-primary spin-btn" onclick="spinWheel(${w.id})">&#10047; Spin</button>
+                    <div class="card-btns">
+                        <button class="btn btn-primary spin-btn" onclick="spinWheel(${w.id})">&#10047; Spin</button>
+                        <button class="btn btn-secondary reset-btn" title="Put every option back on the wheel" onclick="resetWheel(${w.id})">&#8634; Reset</button>
+                    </div>
                 `;
                 row.appendChild(card);
                 renderResult(w);
@@ -766,8 +811,16 @@
                     <input type="checkbox" id="weightedToggle" ${w.weighted ? 'checked' : ''} onchange="toggleWeighted(${w.id}, this.checked)">
                     Weighted wedges (uneven odds)
                 </label>
+                <label class="weight-toggle">
+                    <input type="checkbox" id="eliminateToggle" ${w.eliminate ? 'checked' : ''} onchange="toggleEliminate(${w.id}, this.checked)">
+                    Remove the winner after each spin (until reset)
+                </label>
+                <div class="editor-row" id="resetRow">
+                    <button class="btn btn-secondary" type="button" onclick="resetWheel(${w.id})">&#8634; Reset wheel</button>
+                    <span class="hint" id="removedNote" style="margin:0;"></span>
+                </div>
                 <div class="option-list" id="optionList"></div>
-                <p class="hint">Click the picture box next to an option to add or change its picture. "Add pictures" creates one option per picture, named after the file. Weight = number of "tickets" an option holds: weight 3 is three times as likely to win as weight 1, and its wedge is three times as wide.</p>
+                <p class="hint">Click the picture box next to an option to add or change its picture. "Add pictures" creates one option per picture, named after the file. Weight = number of "tickets" an option holds: weight 3 is three times as likely to win as weight 1, and its wedge is three times as wide. With "Remove the winner after each spin" on, each winner leaves the wheel until you press Reset, which puts the original list back.</p>
             `;
             renderOptionList(w);
             panel.classList.toggle('spinning-wheel', w.spinning);
@@ -790,32 +843,49 @@
                                aria-label="Weight for ${escapeHtml(e.label)}" onchange="setWeight(${w.id}, ${i}, this.value)">
                        <span class="pct">${pct}%</span>`
                     : '';
+                const removed = w.removed.includes(i);
+                const restore = removed
+                    ? `<button class="restore-btn" type="button" title="Put this option back on the wheel" onclick="restoreEntry(${w.id}, ${i})">&#8634; Back</button>`
+                    : '';
                 return `
-                    <div class="option-row">
+                    <div class="option-row ${removed ? 'removed' : ''}">
                         <span class="swatch" style="background:${wedgeColor(i, w.entries.length)}"></span>
                         <span class="olabel" title="${escapeHtml(e.label)}">${escapeHtml(e.label)}</span>
+                        ${restore}
                         ${pic}
-                        ${weight}
+                        ${removed ? '' : weight}
                     </div>`;
             }).join('');
+
+            const note = document.getElementById('removedNote');
+            const resetRow = document.getElementById('resetRow');
+            if (note && resetRow) {
+                const n = w.removed.length;
+                resetRow.style.display = (w.eliminate || n > 0) ? 'flex' : 'none';
+                note.textContent = n === 0 ? 'Nothing removed yet' : n + ' of ' + w.entries.length + ' removed';
+            }
         }
 
         function renderResult(w) {
             const card = document.getElementById('wheel-' + w.id);
             if (!card) return;
             const el = card.querySelector('.wheel-result');
+            const liveCount = liveEntries(w).length;
             if (w.entries.length < 2) {
                 el.innerHTML = '<span class="wheel-empty">Add 2+ options</span>';
             } else if (w.lastWinner) {
+                const left = w.eliminate ? ` <span class="wheel-empty">(${liveCount} left)</span>` : '';
                 el.innerHTML = (w.lastWinner.image ? `<img src="${w.lastWinner.image}" alt="">` : '')
-                    + `<span title="${escapeHtml(w.lastWinner.label)}">${escapeHtml(w.lastWinner.label)}</span>`;
+                    + `<span title="${escapeHtml(w.lastWinner.label)}">${escapeHtml(w.lastWinner.label)}</span>` + left;
+            } else if (liveCount < 2) {
+                el.innerHTML = '<span class="wheel-empty">All spun! Press Reset</span>';
             } else {
                 el.innerHTML = '';
             }
         }
 
         function updateButtons() {
-            const idle = wheels.filter(w => !w.spinning && w.entries.length >= 2);
+            const idle = wheels.filter(w => !w.spinning && canSpin(w));
             const selectedIdle = idle.filter(w => w.selected);
             const selectedCount = wheels.filter(w => w.selected).length;
 
@@ -828,8 +898,13 @@
             wheels.forEach(w => {
                 const card = document.getElementById('wheel-' + w.id);
                 if (!card) return;
-                card.querySelector('.spin-btn').disabled = w.spinning;
+                card.querySelector('.spin-btn').disabled = w.spinning || !canSpin(w);
+                const resetBtn = card.querySelector('.reset-btn');
+                resetBtn.classList.toggle('visible', w.removed.length > 0);
+                resetBtn.disabled = w.spinning;
             });
+            const anyRemoved = wheels.some(w => w.removed.length > 0);
+            document.getElementById('resetAllBtn').style.display = anyRemoved ? '' : 'none';
 
             const a = activeWheel();
             document.getElementById('panel').classList.toggle('spinning-wheel', !!(a && a.spinning));
@@ -892,8 +967,11 @@
             ctx.translate(cx, cy);
             ctx.rotate(w.rotation);
 
+            const live = liveEntries(w);
             let start = 0;
-            w.entries.forEach((e, i) => {
+            live.forEach(item => {
+                const e = item.entry;
+                const i = item.index;
                 const angle = (effectiveWeight(w, e) / total) * 2 * Math.PI;
                 const end = start + angle;
 
@@ -903,7 +981,7 @@
                 ctx.closePath();
                 ctx.fillStyle = wedgeColor(i, w.entries.length);
                 ctx.fill();
-                if (w.entries.length > 1) {
+                if (live.length > 1) {
                     ctx.strokeStyle = 'white';
                     ctx.lineWidth = 2;
                     ctx.stroke();
@@ -1047,6 +1125,8 @@
                 // Same number of lines: treat as renames, keep weights and pictures by position.
                 w.entries = labels.map((label, i) => ({ label: label, weight: old[i].weight, image: old[i].image }));
             } else {
+                // The list changed shape, so start the wheel fresh with everything on it.
+                w.removed = [];
                 // Lines added or removed: keep weight/picture for labels that still exist.
                 w.entries = labels.map(label => {
                     const idx = old.findIndex(e => e.label === label);
@@ -1067,8 +1147,40 @@
             const preset = PRESETS[key];
             if (!w || !preset) return;
             w.entries = makeEntries(preset.items);
+            w.removed = [];
             w.lastWinner = null;
             syncTextarea(w);
+            refreshWheel(w);
+            updateButtons();
+        }
+
+        function toggleEliminate(id, checked) {
+            const w = getWheel(id);
+            if (!w) return;
+            w.eliminate = checked;
+            save();
+            renderOptionList(w);
+            renderResult(w);
+            updateButtons();
+        }
+
+        function resetWheel(id) {
+            const w = getWheel(id);
+            if (!w || w.spinning || w.removed.length === 0) return;
+            w.removed = [];
+            w.lastWinner = null;
+            refreshWheel(w);
+            updateButtons();
+        }
+
+        function resetAll() {
+            wheels.forEach(w => { if (!w.spinning && w.removed.length) resetWheel(w.id); });
+        }
+
+        function restoreEntry(id, index) {
+            const w = getWheel(id);
+            if (!w || w.spinning) return;
+            w.removed = w.removed.filter(i => i !== index);
             refreshWheel(w);
             updateButtons();
         }
@@ -1093,6 +1205,7 @@
             const idx = w.entries.findIndex(e => e.label === label);
             if (idx < 0) return;
             w.entries.splice(idx, 1);
+            w.removed = w.removed.filter(i => i !== idx).map(i => (i > idx ? i - 1 : i));
             w.lastWinner = null;
             syncTextarea(w);
             refreshWheel(w);
@@ -1202,23 +1315,26 @@
         }
 
         // ---------- Spinning ----------
+        // Both work on the live (not eliminated) wedges; they return/take a position in that list.
         function pickWinner(w) {
+            const live = liveEntries(w);
             const total = totalWeight(w);
             let r = Math.random() * total;
-            for (let i = 0; i < w.entries.length; i++) {
-                r -= effectiveWeight(w, w.entries[i]);
+            for (let i = 0; i < live.length; i++) {
+                r -= effectiveWeight(w, live[i].entry);
                 if (r < 0) return i;
             }
-            return w.entries.length - 1;
+            return live.length - 1;
         }
 
-        function wedgeBounds(w, index) {
+        function wedgeBounds(w, pos) {
+            const live = liveEntries(w);
             const total = totalWeight(w);
             let start = 0;
-            for (let i = 0; i < index; i++) {
-                start += (effectiveWeight(w, w.entries[i]) / total) * 2 * Math.PI;
+            for (let i = 0; i < pos; i++) {
+                start += (effectiveWeight(w, live[i].entry) / total) * 2 * Math.PI;
             }
-            const angle = (effectiveWeight(w, w.entries[index]) / total) * 2 * Math.PI;
+            const angle = (effectiveWeight(w, live[pos].entry) / total) * 2 * Math.PI;
             return { start: start, end: start + angle };
         }
 
@@ -1229,13 +1345,17 @@
                 alert('Add at least 2 options to "' + w.name + '" before spinning.');
                 return;
             }
+            if (!canSpin(w)) {
+                alert('"' + w.name + '" has been spun down to its last option. Press Reset to put everything back.');
+                return;
+            }
             startSpin([w]);
         }
 
         function spinAll() {
-            const ready = wheels.filter(w => !w.spinning && w.entries.length >= 2);
+            const ready = wheels.filter(w => !w.spinning && canSpin(w));
             if (ready.length === 0) {
-                if (!wheels.some(w => w.spinning)) alert('Add at least 2 options to a wheel before spinning.');
+                if (!wheels.some(w => w.spinning)) alert('No wheel is ready to spin. Add options, or press Reset on wheels that have been spun down.');
                 return;
             }
             startSpin(ready);
@@ -1247,7 +1367,7 @@
                 alert('Tick the box on the wheels you want to spin together first.');
                 return;
             }
-            const ready = chosen.filter(w => !w.spinning && w.entries.length >= 2);
+            const ready = chosen.filter(w => !w.spinning && canSpin(w));
             if (ready.length === 0) return;
             startSpin(ready);
         }
@@ -1255,13 +1375,13 @@
         function spinAgain() {
             const ids = modalResults.map(r => r.wheelId);
             closeResults();
-            const targets = wheels.filter(w => ids.includes(w.id) && !w.spinning && w.entries.length >= 2);
+            const targets = wheels.filter(w => ids.includes(w.id) && !w.spinning && canSpin(w));
             if (targets.length === 0) return;
             startSpin(targets);
         }
 
         function startSpin(targets) {
-            targets = targets.filter(w => !w.spinning && w.entries.length >= 2);
+            targets = targets.filter(w => !w.spinning && canSpin(w));
             if (targets.length === 0) return;
 
             // Starting a new spin hides any winners still showing so the wheels are visible.
@@ -1281,9 +1401,10 @@
                 renderResult(w);
 
                 // Choose the winner by weight first, then aim the wheel so it lands there.
-                const winnerIndex = pickWinner(w);
+                const pos = pickWinner(w);
+                const winnerIndex = liveEntries(w)[pos].index;
                 const winner = w.entries[winnerIndex];
-                const bounds = wedgeBounds(w, winnerIndex);
+                const bounds = wedgeBounds(w, pos);
                 const wedge = bounds.end - bounds.start;
                 const margin = Math.min(wedge * 0.12, 0.03);
                 const landing = bounds.start + margin + Math.random() * (wedge - 2 * margin);
@@ -1332,8 +1453,20 @@
                 wheelName: w.name,
                 winner: entry.label,
                 image: entry.image,
+                eliminated: w.eliminate,
                 color: wedgeColor(winnerIndex, w.entries.length)
             });
+
+            if (w.eliminate && !w.removed.includes(winnerIndex)) {
+                // Take the winning wedge off the wheel. The wheel redraws a moment later so
+                // everyone sees where it landed first.
+                w.removed.push(winnerIndex);
+                save();
+                renderOptionList(w);
+                renderResult(w);
+                updateButtons();
+                setTimeout(() => { if (!w.spinning) drawWheel(w); }, 700);
+            }
             batch.pending -= 1;
             if (batch.pending <= 0) {
                 delete batches[batchId];
@@ -1365,9 +1498,11 @@
                         <div class="r-wheel">${escapeHtml(r.wheelName || 'Wheel')}</div>
                         <div class="r-winner">${escapeHtml(r.winner)}</div>
                     </div>
-                    <button class="btn btn-secondary btn-small" title="Remove this option from the wheel"
+                    ${r.eliminated
+                        ? `<span class="r-note" title="This wheel removes each winner until you press Reset">Off the wheel</span>`
+                        : `<button class="btn btn-secondary btn-small" title="Remove this option from the wheel"
                             onclick="removeEntry(${r.wheelId}, this.dataset.label); this.disabled = true; this.textContent = 'Removed';"
-                            data-label="${escapeHtml(r.winner)}">Remove</button>
+                            data-label="${escapeHtml(r.winner)}">Remove</button>`}
                 </li>`).join('');
 
             document.getElementById('resultTitle').textContent = modalResults.length === 1 ? 'Winner!' : 'Winners!';
