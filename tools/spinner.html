@@ -8,92 +8,136 @@
     <style>
         :root { --tool-color: #9b1028; }
 
-        .tool-container { max-width: 1400px; }
+        html, body { height: 100%; }
+        body {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tool-header { flex: none; }
+
+        /* App: stage on the left, settings panel on the right */
+        .app {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+        }
+        .stage {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.25rem;
+            gap: 0.75rem;
+        }
 
         /* Toolbar */
         .toolbar {
+            flex: none;
             display: flex;
-            gap: 0.75rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            margin-bottom: 1.5rem;
         }
         .wheel-count {
             color: var(--text-light);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
         }
-
-        /* Wheel grid */
-        .wheel-grid {
-            display: grid;
-            gap: 1.25rem;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            margin: 0 auto;
+        .storage-warning {
+            display: none;
+            flex: none;
+            background: #fff4e5;
+            border-left: 4px solid #ff9800;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
         }
-        .wheel-grid[data-count="1"] { max-width: 520px; }
-        .wheel-grid[data-count="2"] { max-width: 1000px; }
+        .storage-warning.active { display: block; }
 
+        /* Wheel row: every wheel on one line, sized by JS to fit without scrolling */
+        .wheel-row {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--row-gap, 12px);
+            --wheel-size: 300px;
+        }
         .wheel-card {
+            flex: none;
+            width: calc(var(--wheel-size) + 16px);
             background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            padding: 1rem;
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            align-items: center;
+            gap: 6px;
             border-top: 4px solid var(--tool-color);
+            transition: box-shadow 0.15s;
         }
+        .wheel-card.active { border-top-color: var(--accent-light); }
+        .wheel-card.selected { box-shadow: 0 0 0 3px var(--accent-light), var(--shadow); }
+
         .wheel-head {
+            width: 100%;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 4px;
+            min-height: 26px;
         }
-        .wheel-name {
+        .wheel-title {
             flex: 1;
             min-width: 0;
-            font: inherit;
             font-weight: 700;
-            font-size: 1.05rem;
-            color: var(--text);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            padding: 0.3rem 0.5rem;
-            background: transparent;
+            font-size: clamp(0.7rem, calc(var(--wheel-size) * 0.085), 1.05rem);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
         }
-        .wheel-name:hover { border-color: #dfe6e9; }
-        .wheel-name:focus {
-            outline: none;
-            border-color: var(--tool-color);
-            background: #fff;
+        .wheel-title:hover { background: #f0f2f5; }
+        .select-toggle {
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .select-toggle input {
+            width: clamp(14px, calc(var(--wheel-size) * 0.11), 20px);
+            height: clamp(14px, calc(var(--wheel-size) * 0.11), 20px);
+            accent-color: var(--accent-light);
+            cursor: pointer;
+            margin: 0;
         }
         .icon-btn {
             border: none;
             background: #ecf0f1;
             color: var(--text);
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: clamp(22px, calc(var(--wheel-size) * 0.16), 32px);
+            height: clamp(22px, calc(var(--wheel-size) * 0.16), 32px);
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: clamp(0.75rem, calc(var(--wheel-size) * 0.08), 1.05rem);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: background 0.2s, color 0.2s;
         }
         .icon-btn:hover { background: #dfe6e9; }
-        .icon-btn.remove:hover { background: var(--accent); color: white; }
-        .icon-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
-        .wheel-card.editing .icon-btn.edit { background: var(--tool-color); color: white; }
+        .wheel-card.active .icon-btn.edit { background: var(--accent-light); color: white; }
 
         .spinner-wrapper {
             position: relative;
-            width: 100%;
-            max-width: 420px;
-            aspect-ratio: 1 / 1;
-            margin: 0.75rem auto 0;
+            width: var(--wheel-size);
+            height: var(--wheel-size);
+            margin-top: calc(var(--wheel-size) * 0.06);
         }
         .spinner-wrapper canvas {
             width: 100%;
@@ -102,50 +146,114 @@
         }
         .spinner-pointer {
             position: absolute;
-            top: -14px;
+            top: calc(var(--wheel-size) * -0.035);
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 14px solid transparent;
-            border-right: 14px solid transparent;
-            border-top: 28px solid var(--primary);
+            border-left: calc(var(--wheel-size) * 0.035) solid transparent;
+            border-right: calc(var(--wheel-size) * 0.035) solid transparent;
+            border-top: calc(var(--wheel-size) * 0.07) solid var(--primary);
             z-index: 10;
             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
         }
         .wheel-result {
-            min-height: 2rem;
-            font-size: 1.4rem;
+            width: 100%;
+            min-height: 1.6em;
+            font-size: clamp(0.75rem, calc(var(--wheel-size) * 0.09), 1.4rem);
             font-weight: 700;
             color: var(--tool-color);
             text-align: center;
-            word-break: break-word;
-            line-height: 1.3;
+            line-height: 1.25;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
+            overflow: hidden;
+        }
+        .wheel-result span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .wheel-result img {
-            width: 40px;
-            height: 40px;
+            width: 1.6em;
+            height: 1.6em;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 4px;
+            flex-shrink: 0;
         }
         .wheel-empty {
-            font-size: 0.9rem;
+            font-size: 0.8em;
             color: var(--text-light);
             font-weight: 400;
+            white-space: normal;
+        }
+        .spin-btn {
+            padding: 0.35em 1em;
+            font-size: clamp(0.7rem, calc(var(--wheel-size) * 0.08), 1rem);
+            border-radius: 8px;
         }
 
-        /* Per-wheel editor */
-        .wheel-editor {
-            display: none;
-            border-top: 2px solid #f0f2f5;
-            padding-top: 0.75rem;
+        /* Settings panel */
+        .panel {
+            flex: none;
+            width: 360px;
+            background: var(--card-bg);
+            border-left: 1px solid #dfe6e9;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
-        .wheel-card.editing .wheel-editor { display: block; }
-        .wheel-editor textarea { resize: vertical; }
+        .panel.collapsed { display: none; }
+        .panel-header {
+            flex: none;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #eef1f4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .panel-header h2 { font-size: 1.05rem; }
+        .tabs {
+            flex: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eef1f4;
+        }
+        .tab {
+            border: none;
+            background: #ecf0f1;
+            color: var(--text);
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tab:hover { background: #dfe6e9; }
+        .tab.active { background: var(--tool-color); color: white; }
+        .tab-add {
+            background: transparent;
+            border: 2px dashed #cfd6db;
+            color: var(--text-light);
+        }
+        .tab-add:hover { border-color: var(--tool-color); color: var(--tool-color); background: transparent; }
+        .panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        .panel-body .input-group { margin-bottom: 1rem; }
+        .panel-body textarea { resize: vertical; }
         .editor-row {
             display: flex;
             gap: 0.5rem;
@@ -155,7 +263,7 @@
         }
         .editor-row select {
             flex: 1;
-            min-width: 140px;
+            min-width: 130px;
             padding: 0.55rem 0.75rem;
             border: 2px solid #dfe6e9;
             border-radius: 8px;
@@ -176,9 +284,6 @@
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 0.25rem;
         }
         .option-row {
             display: flex;
@@ -186,12 +291,7 @@
             gap: 0.5rem;
             font-size: 0.95rem;
         }
-        .option-row .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            flex-shrink: 0;
-        }
+        .option-row .swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
         .option-row .olabel {
             flex: 1;
             min-width: 0;
@@ -248,19 +348,18 @@
         .hint {
             font-size: 0.85rem;
             color: var(--text-light);
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
         }
-        .storage-warning {
-            display: none;
-            background: #fff4e5;
-            border-left: 4px solid #ff9800;
+        .panel-footer {
+            flex: none;
             padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin: 0 auto 1.25rem;
-            max-width: 800px;
-            font-size: 0.9rem;
+            border-top: 1px solid #eef1f4;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: space-between;
+            align-items: center;
         }
-        .storage-warning.active { display: block; }
+        .panel.spinning-wheel .panel-body { opacity: 0.5; pointer-events: none; }
 
         /* Winner popup */
         .modal-backdrop {
@@ -310,13 +409,7 @@
             background: #f7f8fa;
             border-left: 8px solid var(--c, var(--accent));
         }
-        .result-item .r-pic {
-            width: 64px;
-            height: 64px;
-            object-fit: cover;
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
+        .result-item .r-pic { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
         .result-item .r-body { flex: 1; min-width: 0; }
         .result-item .r-wheel {
             font-size: 0.8rem;
@@ -335,12 +428,7 @@
         .result-list[data-count="1"] .result-item { flex-direction: column; text-align: center; padding: 1.5rem; }
         .result-list[data-count="1"] .result-item .r-pic { width: 200px; height: 200px; }
         .result-list[data-count="1"] .result-item .r-winner { font-size: 2.75rem; }
-        .btn-small {
-            padding: 0.4rem 0.75rem;
-            font-size: 0.8rem;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
+        .btn-small { padding: 0.4rem 0.75rem; font-size: 0.8rem; border-radius: 6px; flex-shrink: 0; }
         .modal-footer {
             padding: 0 1.5rem 1.25rem;
             display: flex;
@@ -349,8 +437,19 @@
             flex-wrap: wrap;
         }
 
-        @media (max-width: 600px) {
-            .wheel-grid { grid-template-columns: 1fr; }
+        /* Laptops: a narrower panel leaves more room for a full row of wheels */
+        @media (max-width: 1400px) {
+            .panel { width: 300px; }
+        }
+
+        /* Small screens: stack the panel under the wheels and let the row wrap */
+        @media (max-width: 800px) {
+            body { overflow: auto; height: auto; }
+            .app { flex-direction: column; }
+            .stage { padding: 0.75rem; }
+            .wheel-row { flex-wrap: wrap; align-items: flex-start; }
+            .panel { width: 100%; border-left: none; border-top: 1px solid #dfe6e9; }
+            .panel-body { max-height: none; }
             .modal-header h2 { font-size: 1.35rem; }
             .result-list[data-count="1"] .result-item .r-winner { font-size: 2rem; }
             .result-list[data-count="1"] .result-item .r-pic { width: 140px; height: 140px; }
@@ -363,22 +462,33 @@
         <h1>Spinner</h1>
     </header>
 
-    <div class="tool-container">
-        <div class="toolbar">
-            <button class="btn btn-primary btn-large" id="spinAllBtn" onclick="spinAll()">&#10047; Spin All</button>
-            <button class="btn btn-secondary" id="addWheelBtn" onclick="addWheel()">+ Add Wheel</button>
-            <span class="wheel-count" id="wheelCount"></span>
-        </div>
+    <div class="app">
+        <main class="stage">
+            <div class="toolbar">
+                <button class="btn btn-primary btn-large" id="spinAllBtn" onclick="spinAll()">&#10047; Spin All</button>
+                <button class="btn btn-primary" id="spinSelectedBtn" onclick="spinSelected()">&#10047; Spin Selected</button>
+                <button class="btn btn-secondary" id="addWheelBtn" onclick="addWheel()">+ Add Wheel</button>
+                <span class="wheel-count" id="wheelCount"></span>
+                <button class="btn btn-secondary" id="panelToggleBtn" onclick="togglePanel()">Hide Settings</button>
+            </div>
+            <div class="storage-warning" id="storageWarning">
+                Your wheels have too many pictures to save in this browser, so they will not be remembered after you leave this page. Try using fewer or smaller pictures.
+            </div>
+            <div class="wheel-row" id="wheelRow"></div>
+        </main>
 
-        <div class="storage-warning" id="storageWarning">
-            Your wheels have too many pictures to save in this browser, so they will not be remembered after you leave this page. Try using fewer or smaller pictures.
-        </div>
-
-        <div class="wheel-grid" id="wheelGrid"></div>
-
-        <p class="hint" style="text-align:center; margin-top:1.25rem;">
-            Tip: press <strong>Space</strong> to spin all wheels. Use the &#9881; button on a wheel to edit its options, add pictures, or turn on weighted wedges.
-        </p>
+        <aside class="panel" id="panel" aria-label="Wheel settings">
+            <div class="panel-header">
+                <h2>Wheel Settings</h2>
+                <button class="icon-btn" title="Hide settings" aria-label="Hide settings" onclick="togglePanel()">&#10005;</button>
+            </div>
+            <div class="tabs" id="tabs"></div>
+            <div class="panel-body" id="panelBody"></div>
+            <div class="panel-footer">
+                <span class="hint" style="margin:0;">Space = spin all</span>
+                <button class="btn btn-danger btn-small" id="removeWheelBtn" onclick="removeActiveWheel()">Remove this wheel</button>
+            </div>
+        </aside>
     </div>
 
     <div class="modal-backdrop" id="resultModal" onclick="if (event.target === this) closeResults()">
@@ -418,8 +528,11 @@
 
         let wheels = [];
         let nextId = 1;
-        let batch = null;          // { pending, results:[], wheelIds:[] } while a spin is running
-        let lastBatchIds = [];     // wheels included in the most recent spin (for "Spin Again")
+        let activeWheelId = null;  // wheel whose settings show in the panel
+        let panelOpen = true;
+        const batches = {};        // batchId -> { pending, results:[] } for spins started together
+        let nextBatchId = 1;
+        let modalResults = [];     // winners currently showing in the popup
         let picTarget = null;      // { wheelId, index } for the single-picture file input
         let bulkTarget = null;     // wheelId for the multi-picture file input
         const imageCache = {};     // dataURL -> HTMLImageElement, for canvas drawing
@@ -436,15 +549,20 @@
                 name: name || ('Wheel ' + (wheels.length + 1)),
                 entries: makeEntries(['Option 1', 'Option 2', 'Option 3', 'Option 4']),
                 weighted: false,
+                selected: false,    // included in "Spin Selected"
                 rotation: 0,
                 spinning: false,
-                lastWinner: null,   // entry object of the most recent winner
-                editing: false
+                batchId: null,      // which group of spins this wheel is part of while spinning
+                lastWinner: null    // entry object of the most recent winner
             };
         }
 
         function getWheel(id) {
             return wheels.find(w => w.id === id);
+        }
+
+        function activeWheel() {
+            return getWheel(activeWheelId) || wheels[0] || null;
         }
 
         function cleanWeight(v) {
@@ -480,13 +598,15 @@
             const warning = document.getElementById('storageWarning');
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    wheels: wheels.map(w => ({ name: w.name, weighted: w.weighted, entries: w.entries }))
+                    panelOpen: panelOpen,
+                    wheels: wheels.map(w => ({ name: w.name, weighted: w.weighted, selected: w.selected, entries: w.entries }))
                 }));
                 warning.classList.remove('active');
             } catch (e) {
                 // Most likely the browser's storage quota (too many pictures).
                 warning.classList.add('active');
             }
+            layoutWheels();
         }
 
         function load() {
@@ -495,9 +615,11 @@
                 if (!raw) return;
                 const data = JSON.parse(raw);
                 if (!data || !Array.isArray(data.wheels)) return;
+                if (typeof data.panelOpen === 'boolean') panelOpen = data.panelOpen;
                 data.wheels.slice(0, MAX_WHEELS).forEach((saved, i) => {
                     const w = newWheel(String(saved.name || ('Wheel ' + (i + 1))));
                     w.weighted = !!saved.weighted;
+                    w.selected = !!saved.selected;
                     const entries = Array.isArray(saved.entries) ? saved.entries : [];
                     w.entries = entries
                         .map(e => ({
@@ -511,6 +633,53 @@
             } catch (e) { /* corrupt or unavailable storage - start fresh */ }
         }
 
+        // ---------- Layout ----------
+        // Size every wheel so the whole row fits the stage with no scrolling.
+        function layoutWheels() {
+            const row = document.getElementById('wheelRow');
+            const n = wheels.length;
+            if (!n) return;
+            const gap = 12;
+            const cardPadding = 16;        // left + right padding of a card
+            const cardChrome = 26 + 6 + 30 + 6 + 34 + 16 + 12; // head, gaps, result, button, padding, pointer
+            const width = row.clientWidth;
+            const height = row.clientHeight;
+            if (!width || !height) return;
+
+            const MIN_SIZE = 60;
+            let size;
+            let wrap = false;
+            if (window.matchMedia('(max-width: 800px)').matches) {
+                size = Math.min(width - cardPadding, 300);
+                wrap = true;
+            } else {
+                const perRow = cols => Math.min((width - gap * (cols - 1)) / cols - cardPadding, height - cardChrome);
+                size = perRow(n);
+                if (size < MIN_SIZE && n > 1) {
+                    // Too narrow for one row: fall back to two rows rather than spilling off screen.
+                    const cols = Math.ceil(n / 2);
+                    const twoRows = Math.min((width - gap * (cols - 1)) / cols - cardPadding, (height - gap) / 2 - cardChrome);
+                    if (twoRows > size) { size = twoRows; wrap = true; }
+                }
+            }
+            size = Math.max(MIN_SIZE, Math.floor(size));
+            row.style.flexWrap = wrap ? 'wrap' : 'nowrap';
+            row.style.setProperty('--wheel-size', size + 'px');
+            row.style.setProperty('--row-gap', gap + 'px');
+        }
+
+        function togglePanel() {
+            panelOpen = !panelOpen;
+            applyPanelState();
+            save();
+        }
+
+        function applyPanelState() {
+            document.getElementById('panel').classList.toggle('collapsed', !panelOpen);
+            document.getElementById('panelToggleBtn').textContent = panelOpen ? 'Hide Settings' : 'Show Settings';
+            layoutWheels();
+        }
+
         // ---------- Rendering ----------
         function escapeHtml(str) {
             return String(str)
@@ -519,67 +688,96 @@
         }
 
         function renderAll() {
-            const grid = document.getElementById('wheelGrid');
-            grid.innerHTML = '';
-            grid.dataset.count = wheels.length;
+            if (!getWheel(activeWheelId)) activeWheelId = wheels.length ? wheels[0].id : null;
 
+            const row = document.getElementById('wheelRow');
+            row.innerHTML = '';
             wheels.forEach(w => {
                 const card = document.createElement('div');
-                card.className = 'wheel-card' + (w.editing ? ' editing' : '');
+                card.className = 'wheel-card'
+                    + (w.id === activeWheelId ? ' active' : '')
+                    + (w.selected ? ' selected' : '');
                 card.id = 'wheel-' + w.id;
-
-                const presetOptions = Object.keys(PRESETS)
-                    .map(k => `<option value="${k}">${escapeHtml(PRESETS[k].label)}</option>`).join('');
-
                 card.innerHTML = `
                     <div class="wheel-head">
-                        <input class="wheel-name" type="text" value="${escapeHtml(w.name)}" placeholder="Wheel name"
-                               aria-label="Wheel name" maxlength="40" oninput="renameWheel(${w.id}, this.value)">
-                        <button class="icon-btn edit" title="Edit options" aria-label="Edit options" onclick="toggleEditor(${w.id})">&#9881;</button>
-                        <button class="icon-btn remove" title="Remove wheel" aria-label="Remove wheel" onclick="removeWheel(${w.id})" ${wheels.length <= 1 ? 'disabled' : ''}>&#10005;</button>
+                        <label class="select-toggle" title="Include this wheel in Spin Selected">
+                            <input type="checkbox" aria-label="Select wheel" ${w.selected ? 'checked' : ''} onchange="toggleSelected(${w.id}, this.checked)">
+                        </label>
+                        <div class="wheel-title" title="Open settings for this wheel" onclick="selectWheel(${w.id})">${escapeHtml(w.name)}</div>
+                        <button class="icon-btn edit" title="Wheel settings" aria-label="Wheel settings" onclick="selectWheel(${w.id})">&#9881;</button>
                     </div>
                     <div class="spinner-wrapper">
                         <div class="spinner-pointer"></div>
                         <canvas width="400" height="400" aria-label="Spinner wheel"></canvas>
                     </div>
                     <div class="wheel-result"></div>
-                    <div class="btn-group">
-                        <button class="btn btn-primary spin-btn" onclick="spinWheel(${w.id})">&#10047; Spin</button>
-                    </div>
-                    <div class="wheel-editor">
-                        <div class="input-group">
-                            <label>Options (one per line)</label>
-                            <textarea rows="6" oninput="updateEntries(${w.id}, this.value)">${escapeHtml(w.entries.map(e => e.label).join('\n'))}</textarea>
-                        </div>
-                        <div class="editor-row">
-                            <button class="btn btn-secondary" type="button" onclick="openBulkPicPicker(${w.id})">&#128247; Add pictures</button>
-                            <select aria-label="Load a preset" onchange="applyPreset(${w.id}, this.value); this.value='';">
-                                <option value="">Load a preset&hellip;</option>
-                                ${presetOptions}
-                            </select>
-                        </div>
-                        <label class="weight-toggle">
-                            <input type="checkbox" ${w.weighted ? 'checked' : ''} onchange="toggleWeighted(${w.id}, this.checked)">
-                            Weighted wedges (uneven odds)
-                        </label>
-                        <div class="option-list"></div>
-                        <p class="hint">Click the picture box next to an option to add or change its picture. "Add pictures" creates one option per picture, named after the file. Weight = number of "tickets" an option holds: weight 3 is three times as likely to win as weight 1, and its wedge is three times as wide.</p>
-                    </div>
+                    <button class="btn btn-primary spin-btn" onclick="spinWheel(${w.id})">&#10047; Spin</button>
                 `;
-                grid.appendChild(card);
-                renderOptionList(w);
+                row.appendChild(card);
                 renderResult(w);
                 drawWheel(w);
             });
 
             document.getElementById('wheelCount').textContent = wheels.length + ' of ' + MAX_WHEELS + ' wheels';
+            renderTabs();
+            renderPanel();
             updateButtons();
+            layoutWheels();
+        }
+
+        function renderTabs() {
+            const tabs = document.getElementById('tabs');
+            let html = wheels.map((w, i) =>
+                `<button class="tab ${w.id === activeWheelId ? 'active' : ''}" onclick="selectWheel(${w.id})" title="${escapeHtml(w.name)}">${i + 1}. ${escapeHtml(w.name)}</button>`
+            ).join('');
+            if (wheels.length < MAX_WHEELS) {
+                html += `<button class="tab tab-add" onclick="addWheel()" title="Add a wheel">+ Add</button>`;
+            }
+            tabs.innerHTML = html;
+        }
+
+        function renderPanel() {
+            const w = activeWheel();
+            const body = document.getElementById('panelBody');
+            const panel = document.getElementById('panel');
+            if (!w) { body.innerHTML = ''; return; }
+
+            const presetOptions = Object.keys(PRESETS)
+                .map(k => `<option value="${k}">${escapeHtml(PRESETS[k].label)}</option>`).join('');
+
+            body.innerHTML = `
+                <div class="input-group">
+                    <label for="wheelNameInput">Wheel name</label>
+                    <input id="wheelNameInput" type="text" value="${escapeHtml(w.name)}" maxlength="40" placeholder="Wheel name"
+                           oninput="renameWheel(${w.id}, this.value)">
+                </div>
+                <div class="input-group">
+                    <label for="optionsText">Options (one per line)</label>
+                    <textarea id="optionsText" rows="7" oninput="updateEntries(${w.id}, this.value)">${escapeHtml(w.entries.map(e => e.label).join('\n'))}</textarea>
+                </div>
+                <div class="editor-row">
+                    <button class="btn btn-secondary" type="button" onclick="openBulkPicPicker(${w.id})">&#128247; Add pictures</button>
+                    <select aria-label="Load a preset" onchange="applyPreset(${w.id}, this.value); this.value='';">
+                        <option value="">Load a preset&hellip;</option>
+                        ${presetOptions}
+                    </select>
+                </div>
+                <label class="weight-toggle">
+                    <input type="checkbox" id="weightedToggle" ${w.weighted ? 'checked' : ''} onchange="toggleWeighted(${w.id}, this.checked)">
+                    Weighted wedges (uneven odds)
+                </label>
+                <div class="option-list" id="optionList"></div>
+                <p class="hint">Click the picture box next to an option to add or change its picture. "Add pictures" creates one option per picture, named after the file. Weight = number of "tickets" an option holds: weight 3 is three times as likely to win as weight 1, and its wedge is three times as wide.</p>
+            `;
+            renderOptionList(w);
+            panel.classList.toggle('spinning-wheel', w.spinning);
+            document.getElementById('removeWheelBtn').disabled = wheels.length <= 1 || w.spinning;
         }
 
         function renderOptionList(w) {
-            const card = document.getElementById('wheel-' + w.id);
-            if (!card) return;
-            const list = card.querySelector('.option-list');
+            if (w.id !== activeWheelId) return;
+            const list = document.getElementById('optionList');
+            if (!list) return;
             const total = totalWeight(w) || 1;
             list.innerHTML = w.entries.map((e, i) => {
                 const pct = Math.round((effectiveWeight(w, e) / total) * 1000) / 10;
@@ -607,21 +805,35 @@
             if (!card) return;
             const el = card.querySelector('.wheel-result');
             if (w.entries.length < 2) {
-                el.innerHTML = '<span class="wheel-empty">Add at least 2 options to spin</span>';
+                el.innerHTML = '<span class="wheel-empty">Add 2+ options</span>';
             } else if (w.lastWinner) {
                 el.innerHTML = (w.lastWinner.image ? `<img src="${w.lastWinner.image}" alt="">` : '')
-                    + `<span>${escapeHtml(w.lastWinner.label)}</span>`;
+                    + `<span title="${escapeHtml(w.lastWinner.label)}">${escapeHtml(w.lastWinner.label)}</span>`;
             } else {
                 el.innerHTML = '';
             }
         }
 
         function updateButtons() {
-            const busy = !!batch;
-            document.getElementById('spinAllBtn').disabled = busy;
-            document.getElementById('addWheelBtn').disabled = busy || wheels.length >= MAX_WHEELS;
-            document.querySelectorAll('.spin-btn').forEach(b => b.disabled = busy);
-            document.querySelectorAll('.icon-btn.remove').forEach(b => b.disabled = busy || wheels.length <= 1);
+            const idle = wheels.filter(w => !w.spinning && w.entries.length >= 2);
+            const selectedIdle = idle.filter(w => w.selected);
+            const selectedCount = wheels.filter(w => w.selected).length;
+
+            document.getElementById('spinAllBtn').disabled = idle.length === 0;
+            const selBtn = document.getElementById('spinSelectedBtn');
+            selBtn.disabled = selectedIdle.length === 0;
+            selBtn.innerHTML = '&#10047; Spin Selected' + (selectedCount ? ' (' + selectedCount + ')' : '');
+            document.getElementById('addWheelBtn').disabled = wheels.length >= MAX_WHEELS;
+
+            wheels.forEach(w => {
+                const card = document.getElementById('wheel-' + w.id);
+                if (!card) return;
+                card.querySelector('.spin-btn').disabled = w.spinning;
+            });
+
+            const a = activeWheel();
+            document.getElementById('panel').classList.toggle('spinning-wheel', !!(a && a.spinning));
+            document.getElementById('removeWheelBtn').disabled = !a || wheels.length <= 1 || a.spinning;
         }
 
         // ---------- Drawing ----------
@@ -668,7 +880,7 @@
                 ctx.fillStyle = '#e9ecef';
                 ctx.fill();
                 ctx.fillStyle = '#8a949c';
-                ctx.font = 'bold 20px sans-serif';
+                ctx.font = 'bold 28px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText('No options yet', cx, cy);
@@ -724,7 +936,7 @@
                         const innerRadius = 34;
                         const maxWidth = textRadius - innerRadius;
                         const maxHeight = 2 * (r * 0.55) * Math.sin(Math.min(angle, Math.PI) / 2);
-                        const maxFont = Math.max(10, Math.min(22, Math.floor(maxHeight * 0.85)));
+                        const maxFont = Math.max(10, Math.min(26, Math.floor(maxHeight * 0.85)));
 
                         ctx.save();
                         ctx.rotate(mid);
@@ -753,7 +965,7 @@
             ctx.restore();
         }
 
-        // ---------- Editing ----------
+        // ---------- Wheel management ----------
         function refreshWheel(w) {
             save();
             renderOptionList(w);
@@ -762,31 +974,45 @@
         }
 
         function syncTextarea(w) {
-            const card = document.getElementById('wheel-' + w.id);
-            if (card) card.querySelector('textarea').value = w.entries.map(e => e.label).join('\n');
+            if (w.id !== activeWheelId) return;
+            const ta = document.getElementById('optionsText');
+            if (ta) ta.value = w.entries.map(e => e.label).join('\n');
+        }
+
+        function selectWheel(id) {
+            if (!getWheel(id)) return;
+            activeWheelId = id;
+            if (!panelOpen) { panelOpen = true; applyPanelState(); }
+            wheels.forEach(w => {
+                const card = document.getElementById('wheel-' + w.id);
+                if (card) card.classList.toggle('active', w.id === id);
+            });
+            renderTabs();
+            renderPanel();
+            updateButtons();
+            save();
         }
 
         function addWheel() {
-            if (batch || wheels.length >= MAX_WHEELS) return;
+            if (wheels.length >= MAX_WHEELS) return;
             const w = newWheel();
-            w.editing = true;
             wheels.push(w);
+            activeWheelId = w.id;
+            if (!panelOpen) { panelOpen = true; applyPanelState(); }
             save();
             renderAll();
-            const card = document.getElementById('wheel-' + w.id);
-            if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                const ta = card.querySelector('textarea');
-                if (ta) ta.focus();
-            }
+            const ta = document.getElementById('optionsText');
+            if (ta) ta.focus();
         }
 
-        function removeWheel(id) {
-            if (batch || wheels.length <= 1) return;
-            const w = getWheel(id);
-            if (!w) return;
+        function removeActiveWheel() {
+            const w = activeWheel();
+            if (!w || wheels.length <= 1 || w.spinning) return;
             if (!confirm('Remove "' + w.name + '" and its options?')) return;
-            wheels = wheels.filter(x => x.id !== id);
+            const idx = wheels.indexOf(w);
+            wheels = wheels.filter(x => x.id !== w.id);
+            const next = wheels[Math.min(idx, wheels.length - 1)];
+            activeWheelId = next ? next.id : null;
             save();
             renderAll();
         }
@@ -795,15 +1021,20 @@
             const w = getWheel(id);
             if (!w) return;
             w.name = value;
+            const card = document.getElementById('wheel-' + id);
+            if (card) card.querySelector('.wheel-title').textContent = value;
+            renderTabs();
             save();
         }
 
-        function toggleEditor(id) {
+        function toggleSelected(id, checked) {
             const w = getWheel(id);
             if (!w) return;
-            w.editing = !w.editing;
+            w.selected = checked;
             const card = document.getElementById('wheel-' + id);
-            if (card) card.classList.toggle('editing', w.editing);
+            if (card) card.classList.toggle('selected', checked);
+            save();
+            updateButtons();
         }
 
         function updateEntries(id, text) {
@@ -828,6 +1059,7 @@
             }
             w.lastWinner = null;
             refreshWheel(w);
+            updateButtons();
         }
 
         function applyPreset(id, key) {
@@ -838,6 +1070,7 @@
             w.lastWinner = null;
             syncTextarea(w);
             refreshWheel(w);
+            updateButtons();
         }
 
         function toggleWeighted(id, checked) {
@@ -863,6 +1096,7 @@
             w.lastWinner = null;
             syncTextarea(w);
             refreshWheel(w);
+            updateButtons();
         }
 
         // ---------- Pictures ----------
@@ -954,6 +1188,7 @@
                     w.lastWinner = null;
                     syncTextarea(w);
                     refreshWheel(w);
+                    updateButtons();
                 }
                 if (skipped) alert(skipped + ' file(s) were skipped because they are not images.');
             });
@@ -989,7 +1224,7 @@
 
         function spinWheel(id) {
             const w = getWheel(id);
-            if (!w || batch) return;
+            if (!w || w.spinning) return;
             if (w.entries.length < 2) {
                 alert('Add at least 2 options to "' + w.name + '" before spinning.');
                 return;
@@ -998,26 +1233,42 @@
         }
 
         function spinAll() {
-            if (batch) return;
-            const ready = wheels.filter(w => w.entries.length >= 2);
+            const ready = wheels.filter(w => !w.spinning && w.entries.length >= 2);
             if (ready.length === 0) {
-                alert('Add at least 2 options to a wheel before spinning.');
+                if (!wheels.some(w => w.spinning)) alert('Add at least 2 options to a wheel before spinning.');
                 return;
             }
             startSpin(ready);
         }
 
+        function spinSelected() {
+            const chosen = wheels.filter(w => w.selected);
+            if (chosen.length === 0) {
+                alert('Tick the box on the wheels you want to spin together first.');
+                return;
+            }
+            const ready = chosen.filter(w => !w.spinning && w.entries.length >= 2);
+            if (ready.length === 0) return;
+            startSpin(ready);
+        }
+
         function spinAgain() {
+            const ids = modalResults.map(r => r.wheelId);
             closeResults();
-            const targets = wheels.filter(w => lastBatchIds.includes(w.id) && w.entries.length >= 2);
+            const targets = wheels.filter(w => ids.includes(w.id) && !w.spinning && w.entries.length >= 2);
             if (targets.length === 0) return;
             startSpin(targets);
         }
 
         function startSpin(targets) {
-            batch = { pending: targets.length, results: [], wheelIds: targets.map(w => w.id) };
-            lastBatchIds = batch.wheelIds.slice();
-            updateButtons();
+            targets = targets.filter(w => !w.spinning && w.entries.length >= 2);
+            if (targets.length === 0) return;
+
+            // Starting a new spin hides any winners still showing so the wheels are visible.
+            closeResults();
+
+            const batchId = nextBatchId++;
+            batches[batchId] = { pending: targets.length, results: [] };
             playWhoosh();
 
             const POINTER = 3 * Math.PI / 2; // pointer sits at the top of the wheel
@@ -1025,6 +1276,7 @@
 
             targets.forEach((w, i) => {
                 w.spinning = true;
+                w.batchId = batchId;
                 w.lastWinner = null;
                 renderResult(w);
 
@@ -1065,9 +1317,14 @@
                 }
                 requestAnimationFrame(animate);
             });
+            updateButtons();
         }
 
         function finishOne(w, winnerIndex) {
+            const batchId = w.batchId;
+            const batch = batches[batchId];
+            w.batchId = null;
+            updateButtons();
             if (!batch) return;
             const entry = w.entries[winnerIndex];
             batch.results.push({
@@ -1079,22 +1336,29 @@
             });
             batch.pending -= 1;
             if (batch.pending <= 0) {
-                const results = batch.results;
-                batch = null;
-                updateButtons();
-                showResults(results);
+                delete batches[batchId];
+                showResults(batch.results);
             }
         }
 
         // ---------- Winner popup ----------
         function showResults(results) {
+            const modal = document.getElementById('resultModal');
+            const list = document.getElementById('resultList');
+
+            // If winners from another group are already showing, add these to the same popup.
+            if (!modal.classList.contains('active')) modalResults = [];
+            results.forEach(r => {
+                modalResults = modalResults.filter(x => x.wheelId !== r.wheelId);
+                modalResults.push(r);
+            });
+
             // Keep results in on-screen wheel order
             const order = wheels.map(w => w.id);
-            results.sort((a, b) => order.indexOf(a.wheelId) - order.indexOf(b.wheelId));
+            modalResults.sort((a, b) => order.indexOf(a.wheelId) - order.indexOf(b.wheelId));
 
-            const list = document.getElementById('resultList');
-            list.dataset.count = results.length;
-            list.innerHTML = results.map(r => `
+            list.dataset.count = modalResults.length;
+            list.innerHTML = modalResults.map(r => `
                 <li class="result-item" style="--c:${r.color}">
                     ${r.image ? `<img class="r-pic" src="${r.image}" alt="">` : ''}
                     <div class="r-body">
@@ -1106,8 +1370,8 @@
                             data-label="${escapeHtml(r.winner)}">Remove</button>
                 </li>`).join('');
 
-            document.getElementById('resultTitle').textContent = results.length === 1 ? 'Winner!' : 'Winners!';
-            document.getElementById('resultModal').classList.add('active');
+            document.getElementById('resultTitle').textContent = modalResults.length === 1 ? 'Winner!' : 'Winners!';
+            modal.classList.add('active');
             playChime();
         }
 
@@ -1118,7 +1382,11 @@
         // ---------- Init ----------
         load();
         if (wheels.length === 0) wheels.push(newWheel());
+        activeWheelId = wheels[0].id;
+        applyPanelState();
         renderAll();
+
+        window.addEventListener('resize', layoutWheels);
 
         document.addEventListener('keydown', (e) => {
             const tag = (e.target.tagName || '').toLowerCase();
