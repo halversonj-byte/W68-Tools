@@ -7,36 +7,353 @@
     <link rel="stylesheet" href="../css/style.css">
     <style>
         :root { --tool-color: #9b1028; }
+
+        .tool-container { max-width: 1400px; }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .wheel-count {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        /* Wheel grid */
+        .wheel-grid {
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            margin: 0 auto;
+        }
+        .wheel-grid[data-count="1"] { max-width: 520px; }
+        .wheel-grid[data-count="2"] { max-width: 1000px; }
+
+        .wheel-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            border-top: 4px solid var(--tool-color);
+        }
+        .wheel-head {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .wheel-name {
+            flex: 1;
+            min-width: 0;
+            font: inherit;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 0.3rem 0.5rem;
+            background: transparent;
+        }
+        .wheel-name:hover { border-color: #dfe6e9; }
+        .wheel-name:focus {
+            outline: none;
+            border-color: var(--tool-color);
+            background: #fff;
+        }
+        .icon-btn {
+            border: none;
+            background: #ecf0f1;
+            color: var(--text);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .icon-btn:hover { background: #dfe6e9; }
+        .icon-btn.remove:hover { background: var(--accent); color: white; }
+        .icon-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+        .wheel-card.editing .icon-btn.edit { background: var(--tool-color); color: white; }
+
         .spinner-wrapper {
             position: relative;
-            width: 400px;
-            height: 400px;
-            margin: 0 auto;
-            max-width: 90vw;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 1 / 1;
+            margin: 0.75rem auto 0;
         }
         .spinner-wrapper canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
         .spinner-pointer {
             position: absolute;
-            top: -18px;
+            top: -14px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 16px solid transparent;
-            border-right: 16px solid transparent;
-            border-top: 30px solid var(--primary);
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 28px solid var(--primary);
             z-index: 10;
             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
         }
-        .result-text {
-            font-size: 2rem;
+        .wheel-result {
+            min-height: 2rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--tool-color);
-            min-height: 2.5rem;
-            margin-top: 1rem;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .wheel-result img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .wheel-empty {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        /* Per-wheel editor */
+        .wheel-editor {
+            display: none;
+            border-top: 2px solid #f0f2f5;
+            padding-top: 0.75rem;
+        }
+        .wheel-card.editing .wheel-editor { display: block; }
+        .wheel-editor textarea { resize: vertical; }
+        .editor-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .editor-row select {
+            flex: 1;
+            min-width: 140px;
+            padding: 0.55rem 0.75rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 8px;
+            font: inherit;
+            background: #fff;
+        }
+        .weight-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+        }
+        .weight-toggle input { width: 18px; height: 18px; accent-color: var(--tool-color); }
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .option-row .swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .option-row .olabel {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pic-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 2px dashed #cfd6db;
+            background: #fff;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .pic-btn:hover { border-color: var(--tool-color); }
+        .pic-btn.has-pic { border-style: solid; }
+        .pic-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pic-clear {
+            border: none;
+            background: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 1rem;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .pic-clear:hover { background: #ecf0f1; color: var(--accent); }
+        .option-row .weight-input {
+            width: 62px;
+            padding: 0.3rem 0.4rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            font: inherit;
+            text-align: center;
+        }
+        .option-row .weight-input:focus { outline: none; border-color: var(--tool-color); }
+        .option-row .pct {
+            width: 46px;
+            text-align: right;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .hint {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+        }
+        .storage-warning {
+            display: none;
+            background: #fff4e5;
+            border-left: 4px solid #ff9800;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin: 0 auto 1.25rem;
+            max-width: 800px;
+            font-size: 0.9rem;
+        }
+        .storage-warning.active { display: block; }
+
+        /* Winner popup */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 32, 68, 0.78);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-backdrop.active { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 760px;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: var(--shadow-hover);
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-header {
+            background: var(--tool-color);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+        .modal-header h2 { font-size: 1.75rem; }
+        .result-list {
+            list-style: none;
+            padding: 1.25rem 1.5rem;
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        .result-list[data-count="1"] { grid-template-columns: 1fr; }
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: #f7f8fa;
+            border-left: 8px solid var(--c, var(--accent));
+        }
+        .result-item .r-pic {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .result-item .r-body { flex: 1; min-width: 0; }
+        .result-item .r-wheel {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .result-item .r-winner {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
+            line-height: 1.2;
+        }
+        .result-list[data-count="1"] .result-item { flex-direction: column; text-align: center; padding: 1.5rem; }
+        .result-list[data-count="1"] .result-item .r-pic { width: 200px; height: 200px; }
+        .result-list[data-count="1"] .result-item .r-winner { font-size: 2.75rem; }
+        .btn-small {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .modal-footer {
+            padding: 0 1.5rem 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) {
+            .wheel-grid { grid-template-columns: 1fr; }
+            .modal-header h2 { font-size: 1.35rem; }
+            .result-list[data-count="1"] .result-item .r-winner { font-size: 2rem; }
+            .result-list[data-count="1"] .result-item .r-pic { width: 140px; height: 140px; }
         }
     </style>
 </head>
@@ -47,99 +364,384 @@
     </header>
 
     <div class="tool-container">
-        <div class="display-box">
-            <div class="spinner-wrapper">
-                <div class="spinner-pointer"></div>
-                <canvas id="spinnerCanvas" width="400" height="400"></canvas>
-            </div>
-            <div class="result-text" id="result"></div>
+        <div class="toolbar">
+            <button class="btn btn-primary btn-large" id="spinAllBtn" onclick="spinAll()">&#10047; Spin All</button>
+            <button class="btn btn-secondary" id="addWheelBtn" onclick="addWheel()">+ Add Wheel</button>
+            <span class="wheel-count" id="wheelCount"></span>
         </div>
 
-        <div class="btn-group" style="margin-bottom:1.5rem;">
-            <button class="btn btn-primary btn-large" id="spinBtn" onclick="spin()">&#10047; Spin!</button>
+        <div class="storage-warning" id="storageWarning">
+            Your wheels have too many pictures to save in this browser, so they will not be remembered after you leave this page. Try using fewer or smaller pictures.
         </div>
 
-        <div class="settings-panel">
-            <div class="input-group">
-                <label for="optionsInput">Options (one per line)</label>
-                <textarea id="optionsInput" rows="6" oninput="drawWheel()">Option 1
-Option 2
-Option 3
-Option 4</textarea>
+        <div class="wheel-grid" id="wheelGrid"></div>
+
+        <p class="hint" style="text-align:center; margin-top:1.25rem;">
+            Tip: press <strong>Space</strong> to spin all wheels. Use the &#9881; button on a wheel to edit its options, add pictures, or turn on weighted wedges.
+        </p>
+    </div>
+
+    <div class="modal-backdrop" id="resultModal" onclick="if (event.target === this) closeResults()">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+            <div class="modal-header">
+                <h2 id="resultTitle">Winner!</h2>
             </div>
-            <div style="margin-top:0.5rem;">
-                <label style="font-weight:600; font-size:0.95rem;">Presets:</label>
-                <div class="btn-group" style="margin-top:0.5rem;">
-                    <button class="btn btn-secondary" onclick="setPreset('yes-no')">Yes / No</button>
-                    <button class="btn btn-secondary" onclick="setPreset('numbers')">1 - 6</button>
-                    <button class="btn btn-secondary" onclick="setPreset('colors')">Colors</button>
-                    <button class="btn btn-secondary" onclick="setPreset('roles')">Team Roles</button>
-                </div>
+            <ul class="result-list" id="resultList"></ul>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="spinAgain()">&#10047; Spin Again</button>
+                <button class="btn btn-secondary" onclick="closeResults()">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- Shared hidden file inputs; JS points them at the right wheel/option before opening -->
+    <input type="file" id="picInput" accept="image/*" style="display:none" onchange="handlePicInput(this)">
+    <input type="file" id="bulkPicInput" accept="image/*" multiple style="display:none" onchange="handleBulkPicInput(this)">
+
     <script src="../js/sounds.js"></script>
     <script>
-        const colors = [
+        const COLORS = [
             '#e74c3c', '#3498db', '#2ecc71', '#e67e22', '#9b59b6',
             '#1abc9c', '#34495e', '#e91e63', '#00bcd4', '#ff9800',
             '#795548', '#607d8b'
         ];
+        const MAX_WHEELS = 10;
+        const MAX_WEIGHT = 100;
+        const PIC_SIZE = 160;           // stored picture size in pixels (square)
+        const STORAGE_KEY = 'w68-spinner-wheels';
+        const PRESETS = {
+            'yes-no':  { label: 'Yes / No',    items: ['Yes', 'No'] },
+            'numbers': { label: '1 - 6',       items: ['1', '2', '3', '4', '5', '6'] },
+            'colors':  { label: 'Colors',      items: ['Red', 'Blue', 'Green', 'Yellow', 'Orange', 'Purple'] },
+            'roles':   { label: 'Team Roles',  items: ['Reader', 'Recorder', 'Reporter', 'Time Keeper'] }
+        };
 
-        let rotation = 0;
-        let spinning = false;
+        let wheels = [];
+        let nextId = 1;
+        let batch = null;          // { pending, results:[], wheelIds:[] } while a spin is running
+        let lastBatchIds = [];     // wheels included in the most recent spin (for "Spin Again")
+        let picTarget = null;      // { wheelId, index } for the single-picture file input
+        let bulkTarget = null;     // wheelId for the multi-picture file input
+        const imageCache = {};     // dataURL -> HTMLImageElement, for canvas drawing
 
-        function getOptions() {
-            return document.getElementById('optionsInput').value
-                .split('\n').map(s => s.trim()).filter(s => s.length > 0);
+        // ---------- Model ----------
+        // entry = { label: string, weight: number, image: dataURL | null }
+        function makeEntries(labels) {
+            return labels.map(l => ({ label: l, weight: 1, image: null }));
         }
 
-        function drawWheel(extraRotation = 0) {
-            const canvas = document.getElementById('spinnerCanvas');
-            const ctx = canvas.getContext('2d');
-            const options = getOptions();
-            if (options.length === 0) return;
+        function newWheel(name) {
+            return {
+                id: nextId++,
+                name: name || ('Wheel ' + (wheels.length + 1)),
+                entries: makeEntries(['Option 1', 'Option 2', 'Option 3', 'Option 4']),
+                weighted: false,
+                rotation: 0,
+                spinning: false,
+                lastWinner: null,   // entry object of the most recent winner
+                editing: false
+            };
+        }
 
+        function getWheel(id) {
+            return wheels.find(w => w.id === id);
+        }
+
+        function cleanWeight(v) {
+            const n = Math.round(parseFloat(v));
+            if (!isFinite(n) || n < 1) return 1;
+            return Math.min(n, MAX_WEIGHT);
+        }
+
+        function cleanImage(v) {
+            return (typeof v === 'string' && v.indexOf('data:image/') === 0) ? v : null;
+        }
+
+        function effectiveWeight(wheel, entry) {
+            return wheel.weighted ? entry.weight : 1;
+        }
+
+        function totalWeight(wheel) {
+            return wheel.entries.reduce((sum, e) => sum + effectiveWeight(wheel, e), 0);
+        }
+
+        function wedgeColor(index, count) {
+            let color = COLORS[index % COLORS.length];
+            // Avoid the last wedge matching the first one where they meet.
+            if (count > 1 && index === count - 1 && color === COLORS[0]) {
+                const prev = COLORS[(index - 1) % COLORS.length];
+                color = COLORS.find(c => c !== COLORS[0] && c !== prev) || color;
+            }
+            return color;
+        }
+
+        // ---------- Persistence ----------
+        function save() {
+            const warning = document.getElementById('storageWarning');
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    wheels: wheels.map(w => ({ name: w.name, weighted: w.weighted, entries: w.entries }))
+                }));
+                warning.classList.remove('active');
+            } catch (e) {
+                // Most likely the browser's storage quota (too many pictures).
+                warning.classList.add('active');
+            }
+        }
+
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (!data || !Array.isArray(data.wheels)) return;
+                data.wheels.slice(0, MAX_WHEELS).forEach((saved, i) => {
+                    const w = newWheel(String(saved.name || ('Wheel ' + (i + 1))));
+                    w.weighted = !!saved.weighted;
+                    const entries = Array.isArray(saved.entries) ? saved.entries : [];
+                    w.entries = entries
+                        .map(e => ({
+                            label: String((e && e.label) || '').trim(),
+                            weight: cleanWeight(e && e.weight),
+                            image: cleanImage(e && e.image)
+                        }))
+                        .filter(e => e.label.length > 0);
+                    wheels.push(w);
+                });
+            } catch (e) { /* corrupt or unavailable storage - start fresh */ }
+        }
+
+        // ---------- Rendering ----------
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function renderAll() {
+            const grid = document.getElementById('wheelGrid');
+            grid.innerHTML = '';
+            grid.dataset.count = wheels.length;
+
+            wheels.forEach(w => {
+                const card = document.createElement('div');
+                card.className = 'wheel-card' + (w.editing ? ' editing' : '');
+                card.id = 'wheel-' + w.id;
+
+                const presetOptions = Object.keys(PRESETS)
+                    .map(k => `<option value="${k}">${escapeHtml(PRESETS[k].label)}</option>`).join('');
+
+                card.innerHTML = `
+                    <div class="wheel-head">
+                        <input class="wheel-name" type="text" value="${escapeHtml(w.name)}" placeholder="Wheel name"
+                               aria-label="Wheel name" maxlength="40" oninput="renameWheel(${w.id}, this.value)">
+                        <button class="icon-btn edit" title="Edit options" aria-label="Edit options" onclick="toggleEditor(${w.id})">&#9881;</button>
+                        <button class="icon-btn remove" title="Remove wheel" aria-label="Remove wheel" onclick="removeWheel(${w.id})" ${wheels.length <= 1 ? 'disabled' : ''}>&#10005;</button>
+                    </div>
+                    <div class="spinner-wrapper">
+                        <div class="spinner-pointer"></div>
+                        <canvas width="400" height="400" aria-label="Spinner wheel"></canvas>
+                    </div>
+                    <div class="wheel-result"></div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary spin-btn" onclick="spinWheel(${w.id})">&#10047; Spin</button>
+                    </div>
+                    <div class="wheel-editor">
+                        <div class="input-group">
+                            <label>Options (one per line)</label>
+                            <textarea rows="6" oninput="updateEntries(${w.id}, this.value)">${escapeHtml(w.entries.map(e => e.label).join('\n'))}</textarea>
+                        </div>
+                        <div class="editor-row">
+                            <button class="btn btn-secondary" type="button" onclick="openBulkPicPicker(${w.id})">&#128247; Add pictures</button>
+                            <select aria-label="Load a preset" onchange="applyPreset(${w.id}, this.value); this.value='';">
+                                <option value="">Load a preset&hellip;</option>
+                                ${presetOptions}
+                            </select>
+                        </div>
+                        <label class="weight-toggle">
+                            <input type="checkbox" ${w.weighted ? 'checked' : ''} onchange="toggleWeighted(${w.id}, this.checked)">
+                            Weighted wedges (uneven odds)
+                        </label>
+                        <div class="option-list"></div>
+                        <p class="hint">Click the picture box next to an option to add or change its picture. "Add pictures" creates one option per picture, named after the file. Weight = number of "tickets" an option holds: weight 3 is three times as likely to win as weight 1, and its wedge is three times as wide.</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+                renderOptionList(w);
+                renderResult(w);
+                drawWheel(w);
+            });
+
+            document.getElementById('wheelCount').textContent = wheels.length + ' of ' + MAX_WHEELS + ' wheels';
+            updateButtons();
+        }
+
+        function renderOptionList(w) {
+            const card = document.getElementById('wheel-' + w.id);
+            if (!card) return;
+            const list = card.querySelector('.option-list');
+            const total = totalWeight(w) || 1;
+            list.innerHTML = w.entries.map((e, i) => {
+                const pct = Math.round((effectiveWeight(w, e) / total) * 1000) / 10;
+                const pic = e.image
+                    ? `<button class="pic-btn has-pic" type="button" title="Change picture" onclick="openPicPicker(${w.id}, ${i})"><img src="${e.image}" alt=""></button>
+                       <button class="pic-clear" type="button" title="Remove picture" aria-label="Remove picture" onclick="clearPicture(${w.id}, ${i})">&#10005;</button>`
+                    : `<button class="pic-btn" type="button" title="Add picture" aria-label="Add picture" onclick="openPicPicker(${w.id}, ${i})">&#128247;</button>`;
+                const weight = w.weighted
+                    ? `<input class="weight-input" type="number" min="1" max="${MAX_WEIGHT}" step="1" value="${e.weight}"
+                               aria-label="Weight for ${escapeHtml(e.label)}" onchange="setWeight(${w.id}, ${i}, this.value)">
+                       <span class="pct">${pct}%</span>`
+                    : '';
+                return `
+                    <div class="option-row">
+                        <span class="swatch" style="background:${wedgeColor(i, w.entries.length)}"></span>
+                        <span class="olabel" title="${escapeHtml(e.label)}">${escapeHtml(e.label)}</span>
+                        ${pic}
+                        ${weight}
+                    </div>`;
+            }).join('');
+        }
+
+        function renderResult(w) {
+            const card = document.getElementById('wheel-' + w.id);
+            if (!card) return;
+            const el = card.querySelector('.wheel-result');
+            if (w.entries.length < 2) {
+                el.innerHTML = '<span class="wheel-empty">Add at least 2 options to spin</span>';
+            } else if (w.lastWinner) {
+                el.innerHTML = (w.lastWinner.image ? `<img src="${w.lastWinner.image}" alt="">` : '')
+                    + `<span>${escapeHtml(w.lastWinner.label)}</span>`;
+            } else {
+                el.innerHTML = '';
+            }
+        }
+
+        function updateButtons() {
+            const busy = !!batch;
+            document.getElementById('spinAllBtn').disabled = busy;
+            document.getElementById('addWheelBtn').disabled = busy || wheels.length >= MAX_WHEELS;
+            document.querySelectorAll('.spin-btn').forEach(b => b.disabled = busy);
+            document.querySelectorAll('.icon-btn.remove').forEach(b => b.disabled = busy || wheels.length <= 1);
+        }
+
+        // ---------- Drawing ----------
+        function getImage(dataUrl, onReady) {
+            let img = imageCache[dataUrl];
+            if (!img) {
+                img = new Image();
+                img.onload = onReady;
+                img.src = dataUrl;
+                imageCache[dataUrl] = img;
+            }
+            return img;
+        }
+
+        function fitText(ctx, text, maxWidth, maxFont) {
+            let size = maxFont;
+            ctx.font = `bold ${size}px sans-serif`;
+            while (ctx.measureText(text).width > maxWidth && size > 9) {
+                size -= 1;
+                ctx.font = `bold ${size}px sans-serif`;
+            }
+            if (ctx.measureText(text).width <= maxWidth) return text;
+            let t = text;
+            while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) {
+                t = t.slice(0, -1);
+            }
+            return t + '…';
+        }
+
+        function drawWheel(w) {
+            const card = document.getElementById('wheel-' + w.id);
+            if (!card) return;
+            const canvas = card.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
             const r = cx - 10;
-            const sliceAngle = (2 * Math.PI) / options.length;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (w.entries.length === 0) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                ctx.fillStyle = '#e9ecef';
+                ctx.fill();
+                ctx.fillStyle = '#8a949c';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('No options yet', cx, cy);
+                return;
+            }
+
+            const total = totalWeight(w);
             ctx.save();
             ctx.translate(cx, cy);
-            ctx.rotate(extraRotation);
+            ctx.rotate(w.rotation);
 
-            options.forEach((opt, i) => {
-                const startAngle = i * sliceAngle;
-                const endAngle = startAngle + sliceAngle;
+            let start = 0;
+            w.entries.forEach((e, i) => {
+                const angle = (effectiveWeight(w, e) / total) * 2 * Math.PI;
+                const end = start + angle;
 
-                // Draw slice
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.arc(0, 0, r, startAngle, endAngle);
+                ctx.arc(0, 0, r, start, end);
                 ctx.closePath();
-                ctx.fillStyle = colors[i % colors.length];
+                ctx.fillStyle = wedgeColor(i, w.entries.length);
                 ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                if (w.entries.length > 1) {
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
 
-                // Draw text
-                ctx.save();
-                ctx.rotate(startAngle + sliceAngle / 2);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = 'white';
-                ctx.font = `bold ${Math.min(18, 200 / options.length)}px sans-serif`;
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 3;
-                ctx.fillText(opt, r - 20, 5);
-                ctx.shadowBlur = 0;
-                ctx.restore();
+                if (angle > 0.09) {
+                    const mid = start + angle / 2;
+                    const img = e.image ? getImage(e.image, () => drawWheel(w)) : null;
+
+                    if (img && img.complete && img.naturalWidth > 0) {
+                        // Picture: a circle centred part-way along the wedge, sized to fit its width.
+                        const picRadius = r * 0.62;
+                        const width = 2 * picRadius * Math.sin(Math.min(angle, Math.PI) / 2);
+                        const size = Math.min(width * 0.85, r * 0.42, picRadius - 32);
+                        if (size >= 14) {
+                            ctx.save();
+                            ctx.rotate(mid);
+                            ctx.translate(picRadius, 0);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, size / 2, 0, 2 * Math.PI);
+                            ctx.closePath();
+                            ctx.fillStyle = 'white';
+                            ctx.fill();
+                            ctx.clip();
+                            ctx.drawImage(img, -size / 2, -size / 2, size, size);
+                            ctx.restore();
+                        }
+                    } else {
+                        const textRadius = r - 18;
+                        const innerRadius = 34;
+                        const maxWidth = textRadius - innerRadius;
+                        const maxHeight = 2 * (r * 0.55) * Math.sin(Math.min(angle, Math.PI) / 2);
+                        const maxFont = Math.max(10, Math.min(22, Math.floor(maxHeight * 0.85)));
+
+                        ctx.save();
+                        ctx.rotate(mid);
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'white';
+                        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                        ctx.shadowBlur = 3;
+                        const label = fitText(ctx, e.label, maxWidth, maxFont);
+                        ctx.fillText(label, textRadius, 0);
+                        ctx.restore();
+                    }
+                }
+                start = end;
             });
 
-            // Center circle
+            // Center hub
             ctx.beginPath();
             ctx.arc(0, 0, 20, 0, 2 * Math.PI);
             ctx.fillStyle = 'white';
@@ -151,66 +753,386 @@ Option 4</textarea>
             ctx.restore();
         }
 
-        function spin() {
-            if (spinning) return;
-            const options = getOptions();
-            if (options.length < 2) { alert('Enter at least 2 options.'); return; }
+        // ---------- Editing ----------
+        function refreshWheel(w) {
+            save();
+            renderOptionList(w);
+            renderResult(w);
+            drawWheel(w);
+        }
 
-            spinning = true;
-            document.getElementById('spinBtn').disabled = true;
-            document.getElementById('result').textContent = '';
+        function syncTextarea(w) {
+            const card = document.getElementById('wheel-' + w.id);
+            if (card) card.querySelector('textarea').value = w.entries.map(e => e.label).join('\n');
+        }
 
-            const totalRotation = (Math.random() * 360 + 1440); // At least 4 full spins
-            const duration = 3000;
-            const startTime = Date.now();
-            const startRotation = rotation;
+        function addWheel() {
+            if (batch || wheels.length >= MAX_WHEELS) return;
+            const w = newWheel();
+            w.editing = true;
+            wheels.push(w);
+            save();
+            renderAll();
+            const card = document.getElementById('wheel-' + w.id);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const ta = card.querySelector('textarea');
+                if (ta) ta.focus();
+            }
+        }
 
+        function removeWheel(id) {
+            if (batch || wheels.length <= 1) return;
+            const w = getWheel(id);
+            if (!w) return;
+            if (!confirm('Remove "' + w.name + '" and its options?')) return;
+            wheels = wheels.filter(x => x.id !== id);
+            save();
+            renderAll();
+        }
+
+        function renameWheel(id, value) {
+            const w = getWheel(id);
+            if (!w) return;
+            w.name = value;
+            save();
+        }
+
+        function toggleEditor(id) {
+            const w = getWheel(id);
+            if (!w) return;
+            w.editing = !w.editing;
+            const card = document.getElementById('wheel-' + id);
+            if (card) card.classList.toggle('editing', w.editing);
+        }
+
+        function updateEntries(id, text) {
+            const w = getWheel(id);
+            if (!w) return;
+            const labels = text.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+            const old = w.entries.slice();
+
+            if (labels.length === old.length) {
+                // Same number of lines: treat as renames, keep weights and pictures by position.
+                w.entries = labels.map((label, i) => ({ label: label, weight: old[i].weight, image: old[i].image }));
+            } else {
+                // Lines added or removed: keep weight/picture for labels that still exist.
+                w.entries = labels.map(label => {
+                    const idx = old.findIndex(e => e.label === label);
+                    if (idx >= 0) {
+                        const kept = old.splice(idx, 1)[0];
+                        return { label: label, weight: kept.weight, image: kept.image };
+                    }
+                    return { label: label, weight: 1, image: null };
+                });
+            }
+            w.lastWinner = null;
+            refreshWheel(w);
+        }
+
+        function applyPreset(id, key) {
+            const w = getWheel(id);
+            const preset = PRESETS[key];
+            if (!w || !preset) return;
+            w.entries = makeEntries(preset.items);
+            w.lastWinner = null;
+            syncTextarea(w);
+            refreshWheel(w);
+        }
+
+        function toggleWeighted(id, checked) {
+            const w = getWheel(id);
+            if (!w) return;
+            w.weighted = checked;
+            refreshWheel(w);
+        }
+
+        function setWeight(id, index, value) {
+            const w = getWheel(id);
+            if (!w || !w.entries[index]) return;
+            w.entries[index].weight = cleanWeight(value);
+            refreshWheel(w);
+        }
+
+        function removeEntry(id, label) {
+            const w = getWheel(id);
+            if (!w) return;
+            const idx = w.entries.findIndex(e => e.label === label);
+            if (idx < 0) return;
+            w.entries.splice(idx, 1);
+            w.lastWinner = null;
+            syncTextarea(w);
+            refreshWheel(w);
+        }
+
+        // ---------- Pictures ----------
+        // Shrink an uploaded file to a small square data URL so many pictures fit in localStorage.
+        function fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+                    reject(new Error('Not an image'));
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Could not read file'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Could not decode image'));
+                    img.onload = () => {
+                        const c = document.createElement('canvas');
+                        c.width = PIC_SIZE;
+                        c.height = PIC_SIZE;
+                        const ctx = c.getContext('2d');
+                        // Cover-crop to a centred square
+                        const side = Math.min(img.naturalWidth, img.naturalHeight);
+                        const sx = (img.naturalWidth - side) / 2;
+                        const sy = (img.naturalHeight - side) / 2;
+                        ctx.drawImage(img, sx, sy, side, side, 0, 0, PIC_SIZE, PIC_SIZE);
+                        const keepAlpha = file.type === 'image/png' || file.type === 'image/gif' || file.type === 'image/svg+xml' || file.type === 'image/webp';
+                        resolve(keepAlpha ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', 0.82));
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function labelFromFilename(name) {
+            const base = String(name || '').replace(/\.[^.]+$/, '').replace(/[_\-]+/g, ' ').trim();
+            return base || 'Picture';
+        }
+
+        function openPicPicker(wheelId, index) {
+            picTarget = { wheelId: wheelId, index: index };
+            const input = document.getElementById('picInput');
+            input.value = '';
+            input.click();
+        }
+
+        function openBulkPicPicker(wheelId) {
+            bulkTarget = wheelId;
+            const input = document.getElementById('bulkPicInput');
+            input.value = '';
+            input.click();
+        }
+
+        function handlePicInput(input) {
+            const target = picTarget;
+            picTarget = null;
+            const file = input.files && input.files[0];
+            if (!target || !file) return;
+            fileToDataUrl(file).then(dataUrl => {
+                const w = getWheel(target.wheelId);
+                if (!w || !w.entries[target.index]) return;
+                w.entries[target.index].image = dataUrl;
+                refreshWheel(w);
+            }).catch(() => alert('That file could not be used as a picture. Please choose an image file (JPG, PNG, GIF).'));
+        }
+
+        function handleBulkPicInput(input) {
+            const wheelId = bulkTarget;
+            bulkTarget = null;
+            const files = Array.from(input.files || []);
+            const w = getWheel(wheelId);
+            if (!w || files.length === 0) return;
+            Promise.all(files.map(f => fileToDataUrl(f).then(
+                dataUrl => ({ label: labelFromFilename(f.name), weight: 1, image: dataUrl }),
+                () => null
+            ))).then(results => {
+                const added = results.filter(Boolean);
+                const skipped = results.length - added.length;
+                if (added.length) {
+                    // Avoid duplicate labels, which are used to match options
+                    const used = new Set(w.entries.map(e => e.label));
+                    added.forEach(e => {
+                        let label = e.label, n = 2;
+                        while (used.has(label)) { label = e.label + ' ' + n++; }
+                        e.label = label;
+                        used.add(label);
+                    });
+                    w.entries = w.entries.concat(added);
+                    w.lastWinner = null;
+                    syncTextarea(w);
+                    refreshWheel(w);
+                }
+                if (skipped) alert(skipped + ' file(s) were skipped because they are not images.');
+            });
+        }
+
+        function clearPicture(wheelId, index) {
+            const w = getWheel(wheelId);
+            if (!w || !w.entries[index]) return;
+            w.entries[index].image = null;
+            refreshWheel(w);
+        }
+
+        // ---------- Spinning ----------
+        function pickWinner(w) {
+            const total = totalWeight(w);
+            let r = Math.random() * total;
+            for (let i = 0; i < w.entries.length; i++) {
+                r -= effectiveWeight(w, w.entries[i]);
+                if (r < 0) return i;
+            }
+            return w.entries.length - 1;
+        }
+
+        function wedgeBounds(w, index) {
+            const total = totalWeight(w);
+            let start = 0;
+            for (let i = 0; i < index; i++) {
+                start += (effectiveWeight(w, w.entries[i]) / total) * 2 * Math.PI;
+            }
+            const angle = (effectiveWeight(w, w.entries[index]) / total) * 2 * Math.PI;
+            return { start: start, end: start + angle };
+        }
+
+        function spinWheel(id) {
+            const w = getWheel(id);
+            if (!w || batch) return;
+            if (w.entries.length < 2) {
+                alert('Add at least 2 options to "' + w.name + '" before spinning.');
+                return;
+            }
+            startSpin([w]);
+        }
+
+        function spinAll() {
+            if (batch) return;
+            const ready = wheels.filter(w => w.entries.length >= 2);
+            if (ready.length === 0) {
+                alert('Add at least 2 options to a wheel before spinning.');
+                return;
+            }
+            startSpin(ready);
+        }
+
+        function spinAgain() {
+            closeResults();
+            const targets = wheels.filter(w => lastBatchIds.includes(w.id) && w.entries.length >= 2);
+            if (targets.length === 0) return;
+            startSpin(targets);
+        }
+
+        function startSpin(targets) {
+            batch = { pending: targets.length, results: [], wheelIds: targets.map(w => w.id) };
+            lastBatchIds = batch.wheelIds.slice();
+            updateButtons();
             playWhoosh();
 
-            function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                // Ease out cubic
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const currentDeg = startRotation + totalRotation * eased;
-                const rad = (currentDeg * Math.PI) / 180;
-                drawWheel(rad);
+            const POINTER = 3 * Math.PI / 2; // pointer sits at the top of the wheel
+            const TWO_PI = 2 * Math.PI;
 
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    rotation = currentDeg % 360;
-                    spinning = false;
-                    document.getElementById('spinBtn').disabled = false;
+            targets.forEach((w, i) => {
+                w.spinning = true;
+                w.lastWinner = null;
+                renderResult(w);
 
-                    // Determine winner - pointer is at top (270° in canvas coords)
-                    const sliceAngle = 360 / options.length;
-                    const normalizedAngle = ((270 - (rotation % 360)) % 360 + 360) % 360;
-                    const winnerIndex = Math.floor(normalizedAngle / sliceAngle) % options.length;
-                    document.getElementById('result').textContent = options[winnerIndex];
-                    playChime();
+                // Choose the winner by weight first, then aim the wheel so it lands there.
+                const winnerIndex = pickWinner(w);
+                const winner = w.entries[winnerIndex];
+                const bounds = wedgeBounds(w, winnerIndex);
+                const wedge = bounds.end - bounds.start;
+                const margin = Math.min(wedge * 0.12, 0.03);
+                const landing = bounds.start + margin + Math.random() * (wedge - 2 * margin);
+                const finalRotation = ((POINTER - landing) % TWO_PI + TWO_PI) % TWO_PI;
+
+                const currentMod = ((w.rotation % TWO_PI) + TWO_PI) % TWO_PI;
+                const delta = ((finalRotation - currentMod) % TWO_PI + TWO_PI) % TWO_PI;
+                const fullTurns = 4 + Math.floor(Math.random() * 3);
+                const totalRotation = fullTurns * TWO_PI + delta;
+
+                const startRotation = w.rotation;
+                const duration = 3000 + Math.random() * 1500 + (targets.length > 1 ? i * 150 : 0);
+                const startTime = performance.now();
+
+                function animate(now) {
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    w.rotation = startRotation + totalRotation * eased;
+                    drawWheel(w);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        w.rotation = finalRotation;
+                        drawWheel(w);
+                        w.spinning = false;
+                        w.lastWinner = winner;
+                        renderResult(w);
+                        finishOne(w, winnerIndex);
+                    }
                 }
+                requestAnimationFrame(animate);
+            });
+        }
+
+        function finishOne(w, winnerIndex) {
+            if (!batch) return;
+            const entry = w.entries[winnerIndex];
+            batch.results.push({
+                wheelId: w.id,
+                wheelName: w.name,
+                winner: entry.label,
+                image: entry.image,
+                color: wedgeColor(winnerIndex, w.entries.length)
+            });
+            batch.pending -= 1;
+            if (batch.pending <= 0) {
+                const results = batch.results;
+                batch = null;
+                updateButtons();
+                showResults(results);
             }
-
-            requestAnimationFrame(animate);
         }
 
-        function setPreset(name) {
-            const presets = {
-                'yes-no': 'Yes\nNo',
-                'numbers': '1\n2\n3\n4\n5\n6',
-                'colors': 'Red\nBlue\nGreen\nYellow\nOrange\nPurple',
-                'roles': 'Reader\nRecorder\nReporter\nTime Keeper'
-            };
-            document.getElementById('optionsInput').value = presets[name] || '';
-            drawWheel();
+        // ---------- Winner popup ----------
+        function showResults(results) {
+            // Keep results in on-screen wheel order
+            const order = wheels.map(w => w.id);
+            results.sort((a, b) => order.indexOf(a.wheelId) - order.indexOf(b.wheelId));
+
+            const list = document.getElementById('resultList');
+            list.dataset.count = results.length;
+            list.innerHTML = results.map(r => `
+                <li class="result-item" style="--c:${r.color}">
+                    ${r.image ? `<img class="r-pic" src="${r.image}" alt="">` : ''}
+                    <div class="r-body">
+                        <div class="r-wheel">${escapeHtml(r.wheelName || 'Wheel')}</div>
+                        <div class="r-winner">${escapeHtml(r.winner)}</div>
+                    </div>
+                    <button class="btn btn-secondary btn-small" title="Remove this option from the wheel"
+                            onclick="removeEntry(${r.wheelId}, this.dataset.label); this.disabled = true; this.textContent = 'Removed';"
+                            data-label="${escapeHtml(r.winner)}">Remove</button>
+                </li>`).join('');
+
+            document.getElementById('resultTitle').textContent = results.length === 1 ? 'Winner!' : 'Winners!';
+            document.getElementById('resultModal').classList.add('active');
+            playChime();
         }
 
-        // Initial draw
-        drawWheel();
+        function closeResults() {
+            document.getElementById('resultModal').classList.remove('active');
+        }
+
+        // ---------- Init ----------
+        load();
+        if (wheels.length === 0) wheels.push(newWheel());
+        renderAll();
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') { e.preventDefault(); spin(); }
+            const tag = (e.target.tagName || '').toLowerCase();
+            const typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+            if (e.key === 'Escape') {
+                closeResults();
+            } else if (e.key === ' ' && !typing) {
+                e.preventDefault();
+                if (document.getElementById('resultModal').classList.contains('active')) {
+                    closeResults();
+                } else {
+                    spinAll();
+                }
+            }
         });
     </script>
 </body>
