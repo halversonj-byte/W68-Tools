@@ -29,7 +29,7 @@
         .scene .layer { position: absolute; left: 0; right: 0; pointer-events: none; }
         .deco {
             position: absolute;
-            font-size: 3rem;
+            font-size: calc(var(--sz, 3rem) * var(--scale, 1));   /* scenery scales with the screen */
             pointer-events: none;
             line-height: 1;
             translate: 0 -100%;   /* "top" is where the base sits, so things stand on the ground */
@@ -88,10 +88,19 @@
         .rainbow { left: 50%; top: 42%; width: 90vw; height: 45vw; transform: translateX(-50%) translateY(-100%); border-radius: 90vw 90vw 0 0; background: radial-gradient(circle at 50% 100%, transparent 62%, #e74c3c 62.5% 65%, #f39c12 65% 67.5%, #f1c40f 67.5% 70%, #2ecc71 70% 72.5%, #3498db 72.5% 75%, #9b59b6 75% 77.5%, transparent 78%); opacity: 0.55; }
         .vine { top: 0; width: 6px; background: linear-gradient(#1f6b3c, #2d8a4e); border-radius: 3px; transform-origin: top center; animation: sway ease-in-out infinite alternate; }
         .vine span { position: absolute; bottom: -1.2rem; left: -0.9rem; font-size: 2rem; }
+        .spot { top: -5%; width: 7vw; height: 75%; transform-origin: top center; mix-blend-mode: screen; animation: sweep ease-in-out infinite alternate; }
+        @keyframes sweep { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+        .conf { top: -3vh; width: 7px; height: 11px; border-radius: 2px; opacity: 0.9; animation: fall linear infinite; }
+        .pixel { bottom: -3vh; width: 8px; height: 8px; box-shadow: 0 0 8px currentColor; animation: rise linear infinite; }
+        .sparkle { animation: blink ease-in-out infinite; }
+        .car { left: -8vw; animation: drift linear infinite; }
+        .car.back { scale: -1 1; animation-direction: reverse; }
+        .field, .grid { left: 0; width: 100%; }
         .light { width: 9px; height: 9px; border-radius: 50%; animation: blink 2.8s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
 
         .animal {
             position: absolute;
+            font-size: calc(var(--sz, 3rem) * var(--scale, 1));
             line-height: 1;
             transform-origin: center bottom;
             animation: appear 0.7s cubic-bezier(.2,1.4,.4,1) both, wander var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate;
@@ -470,7 +479,7 @@
             <div class="card">
                 <div style="font-size:3rem;">&#129418; &#129427; &#129433;</div>
                 <h2>Quiet Landscapes</h2>
-                <p>Shy animals come out while the classroom stays under the volume goal. Stay loud and they run away. Twelve scenes to choose from, including seasonal ones. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
+                <p>Shy animals, performers, players and more come out while the classroom stays under the volume goal. Stay loud and they run away. Eighteen scenes to choose from: nature, seasons and holidays, and themes for older students. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
                 <div class="start-scenes-label">Pick a scene</div>
                 <div class="start-scenes" id="startScenes"></div>
                 <button class="btn btn-primary btn-large" onclick="toggleListening()">&#127908; Start listening</button>
@@ -562,7 +571,7 @@
                 bg: 'linear-gradient(#ffe9a3 0%, #f9c27a 35%, #f0975a 50%, #d9a85a 51%, #b9893b 100%)',
                 fog: 'rgba(214, 184, 130, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff2a8', x: 78, y: 8, size: 90 },
                 ridges: [{ top: 44, h: 22, color: '#dba65e', shape: 0 }, { top: 50, h: 20, color: '#c8903f', shape: 1 }],
-                deco: [['🌳', 4, 58, 5], ['🌴', 24, 60, 4.5], ['🌳', 68, 59, 4.5], ['🌵', 88, 68, 3], ['🪨', 40, 76, 2.2], ['🌾', 12, 84, 2.5], ['🌾', 30, 94, 2.5], ['🌾', 58, 90, 2.5], ['🌾', 80, 97, 2.5], ['🌾', 94, 82, 2.2], ['🌿', 50, 80, 2]],
+                deco: [['🌳', 4, 58, 3.4], ['🌴', 24, 60, 3.2], ['🌳', 68, 59, 3.4], ['🌵', 88, 68, 2.4], ['🪨', 40, 76, 1.8], ['🌾', 12, 84, 1.5], ['🌾', 30, 94, 1.8], ['🌾', 58, 90, 1.7], ['🌾', 80, 97, 1.9], ['🌾', 94, 82, 1.4], ['🌿', 50, 80, 1.5]],
                 ambient: [['clouds', 5], ['birds', 2]],
                 animals: [{ emoji: '🦓', name: 'Zebra', tier: 'common' }, { emoji: '🦒', name: 'Giraffe', tier: 'uncommon' }, { emoji: '🦁', name: 'Lion', tier: 'rare' }]
             },
@@ -571,7 +580,7 @@
                 bg: 'linear-gradient(#8fdcf5 0%, #39a9dc 25%, #1b76b0 70%, #104f82 100%)',
                 fog: 'rgba(60, 110, 100, 0.85)', zone: [0.22, 0.82],
                 ridges: [{ top: 84, h: 16, color: '#d9c58a', shape: 2 }],
-                deco: [['🪸', 6, 99, 4], ['🪸', 82, 100, 3.5], ['🪸', 45, 99, 3], ['🌿', 18, 100, 3], ['🌿', 64, 99, 3.2], ['🌿', 92, 98, 2.8], ['🐚', 30, 100, 1.6], ['🪨', 55, 100, 2.2], ['🪸', 26, 100, 2.4], ['🌿', 38, 99, 2.2]],
+                deco: [['🪸', 6, 99, 3.6], ['🪸', 82, 100, 3.2], ['🪸', 45, 99, 2.8], ['🌿', 18, 100, 3], ['🌿', 64, 99, 3.2], ['🌿', 92, 98, 2.6], ['🐚', 30, 100, 1.2], ['🪨', 55, 100, 2], ['🪸', 26, 100, 2.2], ['🌿', 38, 99, 2]],
                 ambient: [['waves', { top: 0, h: 10, color: 'rgba(255,255,255,0.35)' }], ['rays'], ['bubbles', 28]],
                 animals: [{ emoji: '🐠', name: 'Fish', tier: 'common' }, { emoji: '🐢', name: 'Turtle', tier: 'uncommon' }, { emoji: '🦈', name: 'Shark', tier: 'rare' }]
             },
@@ -579,7 +588,7 @@
                 group: 'Nature', name: 'Deep space', swatch: '#2b2d6e',
                 bg: 'radial-gradient(circle at 70% 30%, #3d2e7a 0%, #141a3b 45%, #060915 100%)',
                 fog: 'rgba(90, 90, 110, 0.8)', zone: [0.12, 0.85], stars: 110,
-                deco: [['🌍', 12, 78, 4], ['🌙', 85, 22, 3], ['🪐', 30, 30, 3.5, 'spin'], ['🚀', 70, 66, 2.2]],
+                deco: [['🌍', 12, 78, 4], ['🌙', 85, 22, 3], ['🪐', 30, 30, 3.5, 'spin'], ['🚀', 70, 66, 2]],
                 ambient: [['nebula', 3], ['shooting', 3]],
                 animals: [{ emoji: '🛰️', name: 'Satellite', tier: 'common' }, { emoji: '☄️', name: 'Comet', tier: 'uncommon' }, { emoji: '🌌', name: 'Galaxy', tier: 'rare' }]
             },
@@ -588,7 +597,7 @@
                 bg: 'linear-gradient(#ffd19a 0%, #f0a36a 42%, #7a9a44 50%, #4d6e2a 100%)',
                 fog: 'rgba(120, 100, 70, 0.85)', zone: [0.56, 0.88], sun: { color: '#ffb36b', x: 18, y: 10, size: 80 },
                 ridges: [{ top: 38, h: 24, color: '#8a7a5a', shape: 3 }, { top: 48, h: 20, color: '#5f8a3a', shape: 0 }],
-                deco: [['🌋', 72, 53, 6], ['🌴', 8, 63, 4.5], ['🌴', 90, 64, 4], ['🌿', 20, 78, 3], ['🌿', 50, 82, 3], ['🌿', 80, 80, 3], ['🪨', 36, 90, 2.4], ['🌱', 62, 94, 2], ['🌿', 94, 94, 2.6]],
+                deco: [['🌋', 72, 53, 7], ['🌴', 8, 63, 3.4], ['🌴', 90, 64, 3.2], ['🌿', 20, 78, 2.2], ['🌿', 50, 82, 2.4], ['🌿', 80, 80, 2.3], ['🪨', 36, 90, 1.8], ['🌱', 62, 94, 1.2], ['🌿', 94, 94, 2.6]],
                 ambient: [['smoke', 8, { x: 77, y: 20 }], ['clouds', 4]],
                 animals: [{ emoji: '🦕', name: 'Sauropod', tier: 'common' }, { emoji: '🦖', name: 'T. rex', tier: 'uncommon' }, { emoji: '🦅', name: 'Raptor', tier: 'rare' }]
             },
@@ -597,7 +606,7 @@
                 bg: 'linear-gradient(#cfe9f7 0%, #a9d8d0 38%, #4a8a44 50%, #2b5a2c 100%)',
                 fog: 'rgba(225, 232, 235, 0.85)', zone: [0.6, 0.88], sun: { color: '#fff7d6', x: 82, y: 8, size: 70 },
                 ridges: [{ top: 34, h: 22, color: '#2f6b3a', shape: 4 }, { top: 44, h: 20, color: '#2a5a2e', shape: 4 }],
-                deco: [['🌲', 2, 54, 5], ['🌳', 14, 58, 4.5], ['🌲', 28, 52, 5], ['🌲', 42, 60, 4], ['🌳', 58, 54, 5], ['🌲', 74, 58, 4.5], ['🌲', 88, 52, 5], ['🌳', 96, 60, 4], ['🍄', 35, 90, 1.8], ['🪵', 66, 94, 2.4], ['🌿', 20, 88, 2.2], ['🌿', 84, 92, 2.2]],
+                deco: [['🌲', 2, 54, 3.8], ['🌳', 14, 58, 3.6], ['🌲', 28, 52, 3.6], ['🌲', 42, 60, 3.8], ['🌳', 58, 54, 3.6], ['🌲', 74, 58, 3.8], ['🌲', 88, 52, 3.6], ['🌳', 96, 60, 3.8], ['🍄', 35, 90, 1.2], ['🪵', 66, 94, 2], ['🌿', 20, 88, 1.8], ['🌿', 84, 92, 1.9]],
                 ambient: [['leaves', 16, '🍃'], ['mist'], ['rays']],
                 animals: [{ emoji: '🐿️', name: 'Squirrel', tier: 'common' }, { emoji: '🦊', name: 'Fox', tier: 'uncommon' }, { emoji: '🦌', name: 'Deer', tier: 'rare' }]
             },
@@ -606,7 +615,7 @@
                 bg: 'linear-gradient(#b7e8c4 0%, #4fb47a 32%, #1f6b3c 48%, #164d2b 100%)',
                 fog: 'rgba(120, 170, 130, 0.85)', zone: [0.56, 0.88],
                 ridges: [{ top: 36, h: 24, color: '#2d8a4e', shape: 1 }, { top: 46, h: 20, color: '#1d6a38', shape: 0 }],
-                deco: [['🌴', 4, 54, 6], ['🌴', 84, 52, 5.5], ['🌳', 40, 58, 5], ['🌿', 18, 80, 3.2], ['🌺', 30, 88, 2.4], ['🌿', 56, 84, 3.2], ['🌺', 70, 94, 2.2], ['🌿', 90, 82, 3], ['🍃', 48, 96, 2], ['🪨', 12, 96, 2]],
+                deco: [['🌴', 4, 54, 4.2], ['🌴', 84, 52, 4], ['🌳', 40, 58, 3.8], ['🌿', 18, 80, 2.4], ['🌺', 30, 88, 1.6], ['🌿', 56, 84, 2.6], ['🌺', 70, 94, 1.7], ['🌿', 90, 82, 2.4], ['🍃', 48, 96, 1.4], ['🪨', 12, 96, 1.6]],
                 ambient: [['vines', 7], ['leaves', 12, '🍃'], ['mist'], ['butterflies', 2]],
                 animals: [{ emoji: '🦥', name: 'Sloth', tier: 'common' }, { emoji: '🦜', name: 'Toucan', tier: 'uncommon' }, { emoji: '🐆', name: 'Jaguar', tier: 'rare' }]
             },
@@ -615,7 +624,7 @@
                 bg: 'linear-gradient(#0f2b4e 0%, #2c5f8f 30%, #a9d6ee 48%, #eef7fb 49%, #d6ecf6 100%)',
                 fog: 'rgba(240, 246, 250, 0.9)', zone: [0.52, 0.84],
                 ridges: [{ top: 30, h: 22, color: '#dbe9f3', shape: 3 }, { top: 40, h: 16, color: '#f6fbfe', shape: 4 }],
-                deco: [['🧊', 16, 66, 3.5], ['🧊', 70, 70, 3], ['🧊', 44, 98, 2.4], ['🧊', 88, 99, 2.2]],
+                deco: [['🧊', 16, 66, 2.4], ['🧊', 70, 70, 2.2], ['🧊', 44, 98, 2.8], ['🧊', 88, 99, 2.6]],
                 ambient: [['aurora'], ['snow', 60], ['waves', { top: 86, h: 14, color: 'rgba(110, 170, 215, 0.95)' }]],
                 animals: [{ emoji: '🦭', name: 'Seal', tier: 'common' }, { emoji: '🐻‍❄️', name: 'Polar bear', tier: 'uncommon' }, { emoji: '🐳', name: 'Whale', tier: 'rare' }]
             },
@@ -624,7 +633,7 @@
                 bg: 'linear-gradient(#1b1036 0%, #3b2160 40%, #d9772b 52%, #3a2416 56%, #241509 100%)',
                 fog: 'rgba(110, 70, 140, 0.85)', zone: [0.58, 0.88], stars: 50, moon: { x: 72, y: 8, size: 80 },
                 ridges: [{ top: 46, h: 22, color: '#2b1a3e', shape: 3 }, { top: 54, h: 18, color: '#1c1028', shape: 1 }],
-                deco: [['🏚️', 52, 76, 6], ['🌳', 10, 60, 5, 'dead'], ['🌳', 86, 61, 4.5, 'dead'], ['🪦', 24, 84, 3], ['🪦', 36, 88, 2.6], ['🪦', 70, 86, 3], ['🎃', 8, 94, 3.2, 'flicker'], ['🎃', 60, 97, 3, 'flicker'], ['🎃', 90, 93, 2.8, 'flicker'], ['🕸️', 94, 26, 3], ['🍂', 45, 99, 2], ['🕯️', 57, 75, 1.4, 'flicker']],
+                deco: [['🏚️', 52, 76, 8], ['🌳', 10, 60, 3.6, 'dead'], ['🌳', 86, 61, 3.4, 'dead'], ['🪦', 24, 84, 2.2], ['🪦', 36, 88, 2], ['🪦', 70, 86, 2.2], ['🎃', 8, 94, 1.8, 'flicker'], ['🎃', 60, 97, 1.7, 'flicker'], ['🎃', 90, 93, 1.6, 'flicker'], ['🕸️', 94, 26, 2.5], ['🍂', 45, 99, 1.2], ['🕯️', 59, 75, 1.1, 'flicker']],
                 ambient: [['bats', 6], ['clouds', 3, 'dark'], ['fireflies', 14]],
                 animals: [{ emoji: '🐈‍⬛', name: 'Black cat', tier: 'common' }, { emoji: '🦇', name: 'Bat', tier: 'uncommon' }, { emoji: '👻', name: 'Friendly ghost', tier: 'rare' }]
             },
@@ -633,7 +642,7 @@
                 bg: 'linear-gradient(#ffe2b3 0%, #f3b06a 42%, #b8743a 50%, #7a4a22 100%)',
                 fog: 'rgba(190, 130, 70, 0.85)', zone: [0.58, 0.88], sun: { color: '#ffe8b0', x: 18, y: 10, size: 80 },
                 ridges: [{ top: 40, h: 22, color: '#d6973f', shape: 0 }, { top: 48, h: 20, color: '#b0702e', shape: 1 }],
-                deco: [['🏡', 76, 76, 5.5], ['🌳', 4, 56, 5, 'autumn'], ['🌳', 34, 58, 4.5, 'autumn'], ['🌳', 94, 57, 4, 'autumn'], ['🌽', 12, 80, 3], ['🌽', 18, 82, 3], ['🌽', 24, 80, 3], ['🎃', 56, 92, 3], ['🎃', 64, 95, 2.4], ['🍁', 40, 86, 2.2], ['🍂', 82, 90, 2.2], ['🌾', 90, 97, 2.5], ['🌾', 46, 99, 2.2]],
+                deco: [['🏡', 76, 76, 8], ['🌳', 4, 56, 3.4, 'autumn'], ['🌳', 34, 58, 3.2, 'autumn'], ['🌳', 94, 57, 3, 'autumn'], ['🌽', 12, 80, 1.5], ['🌽', 18, 82, 1.5], ['🌽', 24, 80, 1.5], ['🎃', 56, 92, 1.7], ['🎃', 64, 95, 1.4], ['🍁', 40, 86, 1.2], ['🍂', 82, 90, 1.2], ['🌾', 90, 97, 1.5], ['🌾', 46, 99, 1.4]],
                 ambient: [['leaves', 22, '🍂🍁'], ['clouds', 4]],
                 animals: [{ emoji: '🦃', name: 'Turkey', tier: 'common' }, { emoji: '🦌', name: 'Deer', tier: 'uncommon' }, { emoji: '🦉', name: 'Owl', tier: 'rare' }]
             },
@@ -642,7 +651,7 @@
                 bg: 'linear-gradient(#0b1f44 0%, #24508f 42%, #f4f8fb 50%, #dbe8f2 100%)',
                 fog: 'rgba(240, 246, 250, 0.9)', zone: [0.58, 0.88], stars: 60, moon: { x: 14, y: 8, size: 60 },
                 ridges: [{ top: 40, h: 22, color: '#e6eff7', shape: 4 }, { top: 48, h: 18, color: '#fafdff', shape: 0 }],
-                deco: [['🎄', 6, 78, 6], ['🎄', 86, 80, 5.5], ['🎄', 30, 62, 4], ['🏠', 52, 76, 5.5], ['🎁', 24, 94, 2.5], ['🎁', 70, 97, 2.2], ['🎁', 40, 99, 2], ['🛷', 82, 94, 2.4], ['❄️', 64, 40, 1.6]],
+                deco: [['🎄', 6, 78, 6], ['🎄', 86, 80, 5.5], ['🎄', 30, 62, 3], ['🏠', 52, 76, 8], ['🎁', 24, 94, 1.6], ['🎁', 70, 97, 1.5], ['🎁', 40, 99, 1.4], ['🛷', 82, 94, 2], ['❄️', 64, 40, 1.2]],
                 ambient: [['snow', 70], ['lights', 28]],
                 animals: [{ emoji: '🐧', name: 'Penguin', tier: 'common' }, { emoji: '⛄', name: 'Snowman', tier: 'uncommon' }, { emoji: '🦌', name: 'Reindeer', tier: 'rare' }]
             },
@@ -651,7 +660,7 @@
                 bg: 'linear-gradient(#ffe0ec 0%, #ffb9d2 42%, #b4e0a4 50%, #7fbf72 100%)',
                 fog: 'rgba(240, 170, 200, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff0c8', x: 80, y: 8, size: 70 },
                 ridges: [{ top: 40, h: 22, color: '#9fd48f', shape: 1 }, { top: 48, h: 20, color: '#88c57a', shape: 0 }],
-                deco: [['🌳', 8, 58, 5], ['🌳', 90, 60, 4.5], ['🌹', 14, 86, 2.8], ['🌷', 28, 92, 2.6], ['🌸', 44, 84, 2.4], ['🌺', 60, 96, 2.4], ['🌷', 76, 88, 2.6], ['🌼', 90, 98, 2.2], ['💌', 50, 99, 2], ['🌱', 36, 99, 1.8]],
+                deco: [['🌳', 8, 58, 3.4], ['🌳', 90, 60, 3.2], ['🌹', 14, 86, 1.6], ['🌷', 28, 92, 1.5], ['🌸', 44, 84, 1.4], ['🌺', 60, 96, 1.6], ['🌷', 76, 88, 1.5], ['🌼', 90, 98, 1.4], ['💌', 50, 99, 1.4], ['🌱', 36, 99, 1]],
                 ambient: [['hearts', 14], ['petals', 12], ['clouds', 4]],
                 animals: [{ emoji: '🐰', name: 'Bunny', tier: 'common' }, { emoji: '🦢', name: 'Swan', tier: 'uncommon' }, { emoji: '🦋', name: 'Butterfly', tier: 'rare' }]
             },
@@ -660,9 +669,62 @@
                 bg: 'linear-gradient(#d4f0fc 0%, #9fdcf4 42%, #5bbd6c 50%, #2e8b44 100%)',
                 fog: 'rgba(120, 190, 130, 0.85)', zone: [0.58, 0.88],
                 ridges: [{ top: 38, h: 24, color: '#5cb86a', shape: 0 }, { top: 46, h: 22, color: '#3f9c50', shape: 1 }],
-                deco: [['🏰', 10, 78, 5.5], ['🌳', 36, 58, 4.5], ['🌳', 90, 60, 4], ['☘️', 18, 88, 2.4], ['🍀', 32, 96, 2.4], ['☘️', 50, 90, 2.4], ['🍀', 66, 99, 2.2], ['☘️', 84, 88, 2.4], ['🪙', 70, 80, 2.4], ['🌼', 56, 99, 1.8]],
+                deco: [['🏰', 10, 78, 9], ['🌳', 36, 58, 3.4], ['🌳', 90, 60, 3.2], ['☘️', 18, 88, 1.2], ['🍀', 32, 96, 1.4], ['☘️', 50, 90, 1.2], ['🍀', 66, 99, 1.4], ['☘️', 84, 88, 1.1], ['🪙', 70, 80, 1.3], ['🌼', 56, 99, 1.2]],
                 ambient: [['rainbow'], ['clover', 14], ['clouds', 4]],
                 animals: [{ emoji: '🐑', name: 'Sheep', tier: 'common' }, { emoji: '🐇', name: 'Hare', tier: 'uncommon' }, { emoji: '🧚', name: 'Fairy', tier: 'rare' }]
+            },
+            concert: {
+                group: 'Older students', name: 'Rock concert', swatch: '#5b2a86', who: 'performers',
+                bg: 'linear-gradient(#070513 0%, #1d1040 40%, #2a1550 56%, #110a22 58%, #0b0716 100%)',
+                fog: 'rgba(60, 40, 90, 0.85)', zone: [0.62, 0.88], stars: 30,
+                ridges: [{ top: 46, h: 12, color: '#2a2342', shape: 2 }, { top: 54, h: 10, color: '#15101f', shape: 4 }],
+                deco: [['🔊', 6, 70, 4.5], ['🔊', 94, 70, 4.5], ['🥁', 50, 66, 3.6], ['🎹', 28, 66, 3], ['🎚️', 72, 66, 2.4], ['🎸', 38, 68, 2.2], ['🎤', 60, 66, 1.8]],
+                ambient: [['spotlights', 4], ['notes', 10], ['confetti', 30]],
+                animals: [{ emoji: '🕺', name: 'Fan', tier: 'common' }, { emoji: '🧑‍🎤', name: 'Singer', tier: 'uncommon' }, { emoji: '🎸', name: 'Guitar hero', tier: 'rare' }]
+            },
+            themepark: {
+                group: 'Older students', name: 'Theme park', swatch: '#f06292', who: 'visitors', sizeMul: 0.85,
+                bg: 'linear-gradient(#8fd3ff 0%, #c7ecff 44%, #7cc66b 52%, #5aa84f 100%)',
+                fog: 'rgba(200, 210, 230, 0.85)', zone: [0.62, 0.88], sun: { color: '#fff3b0', x: 12, y: 8, size: 70 },
+                ridges: [{ top: 40, h: 20, color: '#8fcf7f', shape: 1 }, { top: 48, h: 18, color: '#6fb860', shape: 0 }],
+                deco: [['🎡', 74, 60, 11], ['🎢', 22, 58, 10], ['🎠', 50, 80, 5], ['🎪', 90, 84, 6], ['🍿', 8, 92, 1.6], ['🎈', 34, 86, 1.6], ['🌳', 42, 60, 2.8], ['🪧', 60, 94, 1.6]],
+                ambient: [['clouds', 4], ['balloons', 8]],
+                animals: [{ emoji: '🤹', name: 'Juggler', tier: 'common' }, { emoji: '🧙', name: 'Magician', tier: 'uncommon' }, { emoji: '🦄', name: 'Unicorn', tier: 'rare' }]
+            },
+            stadium: {
+                group: 'Older students', name: 'Stadium', swatch: '#2e7d32', who: 'players',
+                bg: 'linear-gradient(#9fd0ff 0%, #d7ecff 26%, #7a7f8a 27%, #a7adb8 48%, #3f9f3f 52%, #2f7f2f 100%)',
+                fog: 'rgba(200, 205, 215, 0.85)', zone: [0.6, 0.88],
+                ridges: [{ top: 30, h: 10, color: '#d8dde6', shape: 4 }, { top: 37, h: 10, color: '#b6bcc8', shape: 4 }, { top: 44, h: 8, color: '#8f96a3', shape: 4 }],
+                deco: [['🥅', 4, 82, 5.5], ['🥅', 96, 82, 5.5], ['🚩', 50, 54, 2], ['📣', 30, 54, 1.6], ['🎥', 70, 54, 1.6], ['🚩', 10, 56, 1.6], ['🚩', 90, 56, 1.6]],
+                ambient: [['fieldlines'], ['confetti', 16]],
+                animals: [{ emoji: '🏃', name: 'Sprinter', tier: 'common' }, { emoji: '⛹️', name: 'Baller', tier: 'uncommon' }, { emoji: '🏆', name: 'Champion', tier: 'rare' }]
+            },
+            city: {
+                group: 'Older students', name: 'Skyline', swatch: '#37474f', who: 'buildings', sizeMul: 1.7,
+                bg: 'linear-gradient(#17254f 0%, #55478a 32%, #e08a5a 50%, #2e3440 54%, #1f2630 100%)',
+                fog: 'rgba(90, 95, 110, 0.85)', zone: [0.58, 0.86], stars: 30,
+                ridges: [{ top: 34, h: 20, color: '#1b2142', shape: 3 }, { top: 44, h: 12, color: '#12172e', shape: 3 }],
+                deco: [['🏗️', 10, 58, 5.5], ['🚧', 40, 84, 1.6], ['🌳', 72, 88, 2.6], ['🌳', 24, 94, 2.8], ['🚦', 58, 86, 1.8], ['🏛️', 88, 60, 3.2], ['🛣️', 50, 100, 1.4]],
+                ambient: [['glow', { x0: 2, x1: 98, y0: 38, y1: 54, n: 45 }], ['traffic', 5], ['clouds', 2, 'dark']],
+                animals: [{ emoji: '🏢', name: 'Office tower', tier: 'common' }, { emoji: '🏬', name: 'Shopping centre', tier: 'uncommon' }, { emoji: '🏙️', name: 'Skyscraper', tier: 'rare' }]
+            },
+            quest: {
+                group: 'Older students', name: 'Creature quest', swatch: '#7e57c2', who: 'creatures',
+                bg: 'linear-gradient(#1e1550 0%, #6b4fb3 40%, #3e8a5a 52%, #2b6b42 100%)',
+                fog: 'rgba(110, 90, 160, 0.85)', zone: [0.6, 0.88], stars: 50, moon: { x: 80, y: 8, size: 60 },
+                ridges: [{ top: 34, h: 22, color: '#4a3a8a', shape: 3 }, { top: 46, h: 16, color: '#2f6f4a', shape: 0 }],
+                deco: [['🏯', 14, 60, 5.5], ['⛩️', 82, 62, 3.6], ['🌲', 40, 60, 2.8], ['🌲', 62, 58, 2.6], ['🔮', 50, 92, 1.6], ['🍄', 30, 94, 1.3], ['🪄', 70, 96, 1.4], ['🗿', 90, 92, 2.4], ['🌿', 8, 92, 1.8]],
+                ambient: [['sparkles', 18], ['mist'], ['shooting', 2]],
+                animals: [{ emoji: '👾', name: 'Pixel beast', tier: 'common' }, { emoji: '🐲', name: 'Dragon', tier: 'uncommon' }, { emoji: '🧞', name: 'Genie', tier: 'rare' }]
+            },
+            arcade: {
+                group: 'Older students', name: 'Retro arcade', swatch: '#ff4081', who: 'characters',
+                bg: 'linear-gradient(#07021a 0%, #2a0a5a 52%, #0b0220 100%)',
+                fog: 'rgba(70, 30, 110, 0.85)', zone: [0.56, 0.86], stars: 40,
+                deco: [['🕹️', 8, 84, 3.6], ['🎮', 92, 86, 3.6], ['👑', 50, 28, 2.2], ['💾', 30, 94, 1.6], ['📼', 70, 96, 1.6], ['🪙', 20, 70, 1.2], ['🪙', 80, 72, 1.2]],
+                ambient: [['grid'], ['pixels', 24], ['shooting', 2]],
+                animals: [{ emoji: '👾', name: 'Invader', tier: 'common' }, { emoji: '🤖', name: 'Robot', tier: 'uncommon' }, { emoji: '🛸', name: 'UFO', tier: 'rare' }]
             }
         };
         const TIER_WEIGHTS = { common: 60, uncommon: 30, rare: 10 };
@@ -801,6 +863,47 @@
                 case 'aurora':
                     h += `<div class="amb aurora"></div>`;
                     break;
+                case 'spotlights': {
+                    const cols = ['rgba(255,80,160,0.35)', 'rgba(80,160,255,0.35)', 'rgba(120,255,160,0.3)', 'rgba(255,220,80,0.3)'];
+                    for (let i = 0; i < n; i++) h += `<div class="amb spot" style="left:${(12 + i * (76 / Math.max(1, n - 1))).toFixed(0)}%;background:linear-gradient(to bottom, ${cols[i % cols.length]}, rgba(255,255,255,0));animation-duration:${rnd(10, 16).toFixed(1)}s;animation-delay:${rnd(-16, 0).toFixed(1)}s"></div>`;
+                    break;
+                }
+                case 'notes':
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(1, 1.8).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-50, 50).toFixed(0)}px;animation-duration:${rnd(24, 40).toFixed(1)}s;animation-delay:${rnd(-40, 0).toFixed(1)}s">${pick('🎵🎶')}</div>`;
+                    break;
+                case 'confetti': {
+                    const cols = ['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#ff4081', '#b388ff'];
+                    for (let i = 0; i < n; i++) h += `<div class="amb conf" style="left:${rnd(0, 100).toFixed(1)}%;background:${cols[i % cols.length]};--drift:${rnd(-80, 80).toFixed(0)}px;--rot:${rnd(-720, 720).toFixed(0)}deg;animation-duration:${rnd(18, 30).toFixed(1)}s;animation-delay:${rnd(-30, 0).toFixed(1)}s"></div>`;
+                    break;
+                }
+                case 'balloons':
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(1.2, 2).toFixed(1)}rem;--drift:${rnd(-60, 60).toFixed(0)}px;animation-duration:${rnd(40, 70).toFixed(1)}s;animation-delay:${rnd(-70, 0).toFixed(1)}s">🎈</div>`;
+                    break;
+                case 'pixels': {
+                    const cols = ['#ff4081', '#40c4ff', '#69f0ae', '#ffd740', '#b388ff'];
+                    for (let i = 0; i < n; i++) h += `<div class="amb pixel" style="left:${rnd(0, 100).toFixed(1)}%;background:${cols[i % cols.length]};--drift:${rnd(-20, 20).toFixed(0)}px;animation-duration:${rnd(20, 36).toFixed(1)}s;animation-delay:${rnd(-36, 0).toFixed(1)}s"></div>`;
+                    break;
+                }
+                case 'sparkles':
+                    for (let i = 0; i < n; i++) h += `<div class="amb sparkle" style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(10, 95).toFixed(1)}%;font-size:${rnd(0.8, 1.4).toFixed(1)}rem;animation-duration:${rnd(3, 6).toFixed(1)}s;animation-delay:${rnd(-6, 0).toFixed(1)}s">✨</div>`;
+                    break;
+                case 'glow':
+                    for (let i = 0; i < opt.n; i++) h += `<div class="amb light" style="left:${rnd(opt.x0, opt.x1).toFixed(1)}%;top:${rnd(opt.y0, opt.y1).toFixed(1)}%;background:#ffe082;width:5px;height:5px;animation-duration:${rnd(3, 7).toFixed(1)}s;animation-delay:${rnd(-7, 0).toFixed(1)}s"></div>`;
+                    break;
+                case 'traffic':
+                    for (let i = 0; i < n; i++) {
+                        const back = i % 2 === 0;   // alternate directions on two lanes
+                        h += `<div class="amb car ${back ? 'back' : ''}" style="top:${(s.zone[1] * 100 + (back ? 6 : 9)).toFixed(0)}%;font-size:${back ? 1.6 : 2}rem;animation-duration:${rnd(28, 50).toFixed(0)}s;animation-delay:${rnd(-50, 0).toFixed(0)}s">${pick('🚗🚕🚙🚌🚓')}</div>`;
+                    }
+                    break;
+                case 'fieldlines': {
+                    const top = s.zone[0] * 100 - 2;
+                    h += `<svg class="amb field" viewBox="0 0 100 100" preserveAspectRatio="none" style="top:${top}%;height:${100 - top}%"><g fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="0.6"><rect x="3" y="6" width="94" height="90"/><line x1="50" y1="6" x2="50" y2="96"/><ellipse cx="50" cy="51" rx="9" ry="16"/><rect x="3" y="26" width="14" height="50"/><rect x="83" y="26" width="14" height="50"/></g></svg>`;
+                    break;
+                }
+                case 'grid':
+                    h += `<svg class="amb grid" viewBox="0 0 100 100" preserveAspectRatio="none" style="top:${(s.zone[0] * 100 - 4).toFixed(0)}%;height:${(104 - s.zone[0] * 100).toFixed(0)}%"><g stroke="rgba(255,64,129,0.55)" stroke-width="0.4" fill="none">${[2, 6, 12, 20, 30, 42, 56, 72, 90].map(y => `<line x1="0" y1="${y}" x2="100" y2="${y}"/>`).join('')}${[-40, -20, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140].map(x => `<line x1="50" y1="0" x2="${x}" y2="100"/>`).join('')}</g></svg>`;
+                    break;
                 case 'rainbow':
                     h += `<div class="amb rainbow"></div>`;
                     break;
@@ -840,7 +943,7 @@
             }
             // Background ambience (behind ridges): clouds, nebula, aurora, rainbow, rays, shooting stars
             const amb = s.ambient || [];
-            const behind = ['clouds', 'birds', 'nebula', 'aurora', 'rainbow', 'rays', 'shooting', 'bats', 'butterflies'];
+            const behind = ['clouds', 'birds', 'nebula', 'aurora', 'rainbow', 'rays', 'shooting', 'bats', 'butterflies', 'spotlights', 'grid', 'fieldlines', 'glow'];
             const run = a => {
                 const n = (a[1] && typeof a[1] === 'object') ? 0 : a[1];
                 const opt = (a[1] && typeof a[1] === 'object') ? a[1] : a[2];
@@ -854,7 +957,7 @@
                 const cls = ['deco'];
                 if (SWAY_EMOJI.includes(d[0])) cls.push('sway');
                 if (d[4]) cls.push(d[4]);
-                html += `<div class="${cls.join(' ')}" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem;animation-duration:${rnd(7, 11).toFixed(1)}s;animation-delay:${rnd(-11, 0).toFixed(1)}s">${d[0]}</div>`;
+                html += `<div class="${cls.join(' ')}" style="left:${d[1]}%;top:${d[2]}%;--sz:${d[3]}rem;animation-duration:${rnd(7, 11).toFixed(1)}s;animation-delay:${rnd(-11, 0).toFixed(1)}s">${d[0]}</div>`;
             });
             // Foreground ambience: snow, leaves, bubbles, hearts, mist, waves, smoke, vines, lights
             amb.filter(a => !behind.includes(a[0])).forEach(a => { html += run(a); });
@@ -875,10 +978,10 @@
             el.className = 'animal' + (a.flip ? ' flip' : '') + (paused ? ' paused' : '');
             el.dataset.slug = a.slug;
             const depth = (a.y - sceneDef().zone[0] * 100) / ((sceneDef().zone[1] - sceneDef().zone[0]) * 100); // 0 far .. 1 near
-            const size = 2.4 + depth * 2.6;
+            const size = (2.4 + depth * 2.6) * (sceneDef().sizeMul || 1);
             el.style.left = a.x + '%';
             el.style.top = a.y + '%';
-            el.style.fontSize = size + 'rem';
+            el.style.setProperty('--sz', size + 'rem');
             el.style.setProperty('--dur', (13 + Math.random() * 10).toFixed(1) + 's');
             el.style.setProperty('--delay', fresh ? '0s' : (-Math.random() * 8).toFixed(1) + 's');
             el.style.setProperty('--wx', Math.round(20 + Math.random() * 50) + 'px');
@@ -935,9 +1038,15 @@
             updateCount();
         }
 
+        function whoWord(n) {
+            const w = sceneDef().who || 'animals';
+            if (n !== 1) return w;
+            return { animals: 'animal', performers: 'performer', visitors: 'visitor', players: 'player', buildings: 'building', creatures: 'creature', characters: 'character' }[w] || w;
+        }
+
         function updateCount() {
             const n = presentList().length;
-            document.getElementById('countPill').textContent = n + (n === 1 ? ' animal' : ' animals');
+            document.getElementById('countPill').textContent = n + ' ' + whoWord(n);
             renderCollection();
             renderSceneGrid();
         }
@@ -959,9 +1068,11 @@
             const btn = k => {
                 const s = SCENES[k];
                 const n = (settings.present[k] || []).length;
+                const w = s.who || 'animals';
+                const word = n === 1 ? ({ animals: 'animal', performers: 'performer', visitors: 'visitor', players: 'player', buildings: 'building', creatures: 'creature', characters: 'character' }[w] || w) : w;
                 return `<button class="scene-btn ${k === settings.scene ? 'active' : ''}" onclick="setScene('${k}')">
                     <span class="sw" style="background:${s.swatch}"></span>
-                    <span><div class="nm">${s.name}</div><div class="cnt">${n} animal${n === 1 ? '' : 's'}</div></span>
+                    <span><div class="nm">${s.name}</div><div class="cnt">${n} ${word}</div></span>
                 </button>`;
             };
             const groups = [];
@@ -983,6 +1094,13 @@
                     <span class="thumb" style="background:${s.bg}">${sample}</span><span>${s.name}</span></button>`;
             }).join('');
         }
+
+        function updateScale() {
+            const st = document.getElementById('stage');
+            const sc = Math.max(0.7, Math.min(1.7, st.clientHeight / 720));
+            st.style.setProperty('--scale', sc.toFixed(3));
+        }
+        window.addEventListener('resize', updateScale);
 
         function setScene(key) {
             if (!SCENES[key]) return;
@@ -1369,6 +1487,7 @@
         renderGoal();
         renderRate();
         renderCalHint();
+        updateScale();
         buildScene();
         showMeter(settings.showMeter);
         if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) listMics();
