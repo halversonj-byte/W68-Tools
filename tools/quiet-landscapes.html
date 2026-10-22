@@ -32,23 +32,24 @@
             font-size: 3rem;
             pointer-events: none;
             line-height: 1;
+            translate: 0 -100%;   /* "top" is where the base sits, so things stand on the ground */
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
         }
-        .sun { position: absolute; border-radius: 50%; pointer-events: none; animation: glow 6s ease-in-out infinite; }
+        .sun { position: absolute; border-radius: 50%; pointer-events: none; animation: glow 9s ease-in-out infinite; }
         .sun.moon { background: #fff8d6; box-shadow: 0 0 40px #fff3c4; }
         @keyframes glow { 0%, 100% { box-shadow: 0 0 50px var(--glow, #fff); } 50% { box-shadow: 0 0 90px var(--glow, #fff); } }
-        .star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.8; animation: twinkle 3s ease-in-out infinite; }
+        .star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.8; animation: twinkle 5s ease-in-out infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         .ridge { position: absolute; left: 0; width: 100%; pointer-events: none; }
 
         /* Decoration motion */
         .deco.sway { transform-origin: 50% 100%; animation: sway 5s ease-in-out infinite alternate; }
         @keyframes sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
-        .deco.flicker { animation: flicker 2.2s ease-in-out infinite; }
+        .deco.flicker { animation: flicker 3.5s ease-in-out infinite; }
         @keyframes flicker { 0%, 100% { filter: brightness(1) drop-shadow(0 0 6px rgba(255,160,40,0.7)); } 50% { filter: brightness(1.25) drop-shadow(0 0 14px rgba(255,170,40,0.95)); } 72% { filter: brightness(0.9) drop-shadow(0 0 4px rgba(255,160,40,0.5)); } }
         .deco.dead { filter: grayscale(1) brightness(0.45) drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
         .deco.autumn { filter: sepia(0.8) saturate(2.2) hue-rotate(-25deg) drop-shadow(0 2px 2px rgba(0,0,0,0.15)); }
-        .deco.spin { animation: spin 60s linear infinite; }
+        .deco.spin { animation: spin 120s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Ambient layers */
@@ -69,25 +70,25 @@
         @keyframes float { from { transform: translate(0, 0); } to { transform: translate(var(--dx, 20px), var(--dy, -20px)); } }
         @keyframes blink { 0%, 100% { opacity: 0.1; } 50% { opacity: 1; } }
         .shooting { width: 120px; height: 2px; background: linear-gradient(90deg, rgba(255,255,255,0), #fff); transform: rotate(25deg); opacity: 0; animation: shoot ease-out infinite; }
-        @keyframes shoot { 0% { opacity: 0; transform: translate(0, 0) rotate(25deg); } 5% { opacity: 1; } 20% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } 100% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } }
+        @keyframes shoot { 0% { opacity: 0; transform: translate(0, 0) rotate(25deg); } 2% { opacity: 1; } 10% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } 100% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } }
         .nebula { border-radius: 50%; filter: blur(20px); animation: float ease-in-out infinite alternate; --dx: 40px; --dy: 30px; }
         .smoke { width: 26px; height: 26px; border-radius: 50%; background: rgba(230,230,230,0.6); filter: blur(4px); animation: puff ease-out infinite; }
         @keyframes puff { 0% { transform: translate(-13px, 0) scale(0.5); opacity: 0.7; } 100% { transform: translate(calc(var(--drift, 0px) - 13px), -200px) scale(2.6); opacity: 0; } }
         .wavebox { left: 0; width: 100%; overflow: hidden; }
         .wave { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; }
-        .wave.w1 { animation: waveMove 9s linear infinite; }
-        .wave.w2 { animation: waveMove 14s linear infinite reverse; opacity: 0.7; }
+        .wave.w1 { animation: waveMove 18s linear infinite; }
+        .wave.w2 { animation: waveMove 28s linear infinite reverse; opacity: 0.7; }
         @keyframes waveMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .ray { top: -10%; width: 9vw; height: 70%; background: linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0)); transform: skewX(-18deg); animation: rayPulse 7s ease-in-out infinite; }
+        .ray { top: -10%; width: 9vw; height: 70%; background: linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0)); transform: skewX(-18deg); animation: rayPulse 12s ease-in-out infinite; }
         @keyframes rayPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
         .mist { left: -30%; width: 160%; height: 14%; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 30%, rgba(255,255,255,0.25) 60%, rgba(255,255,255,0) 100%); filter: blur(8px); animation: mistDrift linear infinite alternate; }
         @keyframes mistDrift { from { transform: translateX(0); } to { transform: translateX(18%); } }
-        .aurora { left: -10%; top: 4%; width: 120%; height: 34%; background: linear-gradient(100deg, rgba(80,255,170,0) 0%, rgba(80,255,170,0.35) 25%, rgba(120,160,255,0.35) 50%, rgba(220,120,255,0.3) 70%, rgba(80,255,170,0) 100%); filter: blur(18px); animation: auroraShift 16s ease-in-out infinite alternate; }
+        .aurora { left: -10%; top: 4%; width: 120%; height: 34%; background: linear-gradient(100deg, rgba(80,255,170,0) 0%, rgba(80,255,170,0.35) 25%, rgba(120,160,255,0.35) 50%, rgba(220,120,255,0.3) 70%, rgba(80,255,170,0) 100%); filter: blur(18px); animation: auroraShift 30s ease-in-out infinite alternate; }
         @keyframes auroraShift { from { transform: translateX(-6%) skewY(-3deg); opacity: 0.6; } to { transform: translateX(6%) skewY(3deg); opacity: 1; } }
         .rainbow { left: 50%; top: 42%; width: 90vw; height: 45vw; transform: translateX(-50%) translateY(-100%); border-radius: 90vw 90vw 0 0; background: radial-gradient(circle at 50% 100%, transparent 62%, #e74c3c 62.5% 65%, #f39c12 65% 67.5%, #f1c40f 67.5% 70%, #2ecc71 70% 72.5%, #3498db 72.5% 75%, #9b59b6 75% 77.5%, transparent 78%); opacity: 0.55; }
         .vine { top: 0; width: 6px; background: linear-gradient(#1f6b3c, #2d8a4e); border-radius: 3px; transform-origin: top center; animation: sway ease-in-out infinite alternate; }
         .vine span { position: absolute; bottom: -1.2rem; left: -0.9rem; font-size: 2rem; }
-        .light { width: 9px; height: 9px; border-radius: 50%; animation: blink 1.6s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
+        .light { width: 9px; height: 9px; border-radius: 50%; animation: blink 2.8s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
 
         .animal {
             position: absolute;
@@ -561,7 +562,7 @@
                 bg: 'linear-gradient(#ffe9a3 0%, #f9c27a 35%, #f0975a 50%, #d9a85a 51%, #b9893b 100%)',
                 fog: 'rgba(214, 184, 130, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff2a8', x: 78, y: 8, size: 90 },
                 ridges: [{ top: 44, h: 22, color: '#dba65e', shape: 0 }, { top: 50, h: 20, color: '#c8903f', shape: 1 }],
-                deco: [['🌳', 4, 36, 5], ['🌴', 24, 38, 4.5], ['🌳', 68, 37, 4.5], ['🌵', 88, 50, 3], ['🪨', 40, 62, 2.2], ['🌾', 12, 74, 2.5], ['🌾', 30, 84, 2.5], ['🌾', 58, 80, 2.5], ['🌾', 80, 86, 2.5], ['🌾', 94, 72, 2.2], ['🌿', 50, 70, 2]],
+                deco: [['🌳', 4, 58, 5], ['🌴', 24, 60, 4.5], ['🌳', 68, 59, 4.5], ['🌵', 88, 68, 3], ['🪨', 40, 76, 2.2], ['🌾', 12, 84, 2.5], ['🌾', 30, 94, 2.5], ['🌾', 58, 90, 2.5], ['🌾', 80, 97, 2.5], ['🌾', 94, 82, 2.2], ['🌿', 50, 80, 2]],
                 ambient: [['clouds', 5], ['birds', 2]],
                 animals: [{ emoji: '🦓', name: 'Zebra', tier: 'common' }, { emoji: '🦒', name: 'Giraffe', tier: 'uncommon' }, { emoji: '🦁', name: 'Lion', tier: 'rare' }]
             },
@@ -570,7 +571,7 @@
                 bg: 'linear-gradient(#8fdcf5 0%, #39a9dc 25%, #1b76b0 70%, #104f82 100%)',
                 fog: 'rgba(60, 110, 100, 0.85)', zone: [0.22, 0.82],
                 ridges: [{ top: 84, h: 16, color: '#d9c58a', shape: 2 }],
-                deco: [['🪸', 6, 80, 4], ['🪸', 82, 82, 3.5], ['🪸', 45, 86, 3], ['🌿', 18, 84, 3], ['🌿', 64, 86, 3.2], ['🌿', 92, 80, 2.8], ['🐚', 30, 92, 1.6], ['🪨', 55, 93, 2.2], ['🪸', 26, 90, 2.4], ['🌿', 38, 90, 2.2]],
+                deco: [['🪸', 6, 99, 4], ['🪸', 82, 100, 3.5], ['🪸', 45, 99, 3], ['🌿', 18, 100, 3], ['🌿', 64, 99, 3.2], ['🌿', 92, 98, 2.8], ['🐚', 30, 100, 1.6], ['🪨', 55, 100, 2.2], ['🪸', 26, 100, 2.4], ['🌿', 38, 99, 2.2]],
                 ambient: [['waves', { top: 0, h: 10, color: 'rgba(255,255,255,0.35)' }], ['rays'], ['bubbles', 28]],
                 animals: [{ emoji: '🐠', name: 'Fish', tier: 'common' }, { emoji: '🐢', name: 'Turtle', tier: 'uncommon' }, { emoji: '🦈', name: 'Shark', tier: 'rare' }]
             },
@@ -578,7 +579,7 @@
                 group: 'Nature', name: 'Deep space', swatch: '#2b2d6e',
                 bg: 'radial-gradient(circle at 70% 30%, #3d2e7a 0%, #141a3b 45%, #060915 100%)',
                 fog: 'rgba(90, 90, 110, 0.8)', zone: [0.12, 0.85], stars: 110,
-                deco: [['🌍', 12, 70, 4], ['🌙', 85, 15, 3], ['🪐', 30, 22, 3.5, 'spin'], ['🚀', 70, 60, 2.2]],
+                deco: [['🌍', 12, 78, 4], ['🌙', 85, 22, 3], ['🪐', 30, 30, 3.5, 'spin'], ['🚀', 70, 66, 2.2]],
                 ambient: [['nebula', 3], ['shooting', 3]],
                 animals: [{ emoji: '🛰️', name: 'Satellite', tier: 'common' }, { emoji: '☄️', name: 'Comet', tier: 'uncommon' }, { emoji: '🌌', name: 'Galaxy', tier: 'rare' }]
             },
@@ -587,7 +588,7 @@
                 bg: 'linear-gradient(#ffd19a 0%, #f0a36a 42%, #7a9a44 50%, #4d6e2a 100%)',
                 fog: 'rgba(120, 100, 70, 0.85)', zone: [0.56, 0.88], sun: { color: '#ffb36b', x: 18, y: 10, size: 80 },
                 ridges: [{ top: 38, h: 24, color: '#8a7a5a', shape: 3 }, { top: 48, h: 20, color: '#5f8a3a', shape: 0 }],
-                deco: [['🌋', 72, 20, 6], ['🌴', 8, 42, 4.5], ['🌴', 90, 44, 4], ['🌿', 20, 66, 3], ['🌿', 50, 70, 3], ['🌿', 80, 68, 3], ['🪨', 36, 80, 2.4], ['🌱', 62, 84, 2], ['🌿', 94, 84, 2.6]],
+                deco: [['🌋', 72, 53, 6], ['🌴', 8, 63, 4.5], ['🌴', 90, 64, 4], ['🌿', 20, 78, 3], ['🌿', 50, 82, 3], ['🌿', 80, 80, 3], ['🪨', 36, 90, 2.4], ['🌱', 62, 94, 2], ['🌿', 94, 94, 2.6]],
                 ambient: [['smoke', 8, { x: 77, y: 20 }], ['clouds', 4]],
                 animals: [{ emoji: '🦕', name: 'Sauropod', tier: 'common' }, { emoji: '🦖', name: 'T. rex', tier: 'uncommon' }, { emoji: '🦅', name: 'Raptor', tier: 'rare' }]
             },
@@ -596,7 +597,7 @@
                 bg: 'linear-gradient(#cfe9f7 0%, #a9d8d0 38%, #4a8a44 50%, #2b5a2c 100%)',
                 fog: 'rgba(225, 232, 235, 0.85)', zone: [0.6, 0.88], sun: { color: '#fff7d6', x: 82, y: 8, size: 70 },
                 ridges: [{ top: 34, h: 22, color: '#2f6b3a', shape: 4 }, { top: 44, h: 20, color: '#2a5a2e', shape: 4 }],
-                deco: [['🌲', 2, 40, 5], ['🌳', 14, 44, 4.5], ['🌲', 28, 38, 5], ['🌲', 42, 46, 4], ['🌳', 58, 40, 5], ['🌲', 74, 44, 4.5], ['🌲', 88, 38, 5], ['🌳', 96, 46, 4], ['🍄', 35, 84, 1.8], ['🪵', 66, 86, 2.4], ['🌿', 20, 80, 2.2], ['🌿', 84, 82, 2.2]],
+                deco: [['🌲', 2, 54, 5], ['🌳', 14, 58, 4.5], ['🌲', 28, 52, 5], ['🌲', 42, 60, 4], ['🌳', 58, 54, 5], ['🌲', 74, 58, 4.5], ['🌲', 88, 52, 5], ['🌳', 96, 60, 4], ['🍄', 35, 90, 1.8], ['🪵', 66, 94, 2.4], ['🌿', 20, 88, 2.2], ['🌿', 84, 92, 2.2]],
                 ambient: [['leaves', 16, '🍃'], ['mist'], ['rays']],
                 animals: [{ emoji: '🐿️', name: 'Squirrel', tier: 'common' }, { emoji: '🦊', name: 'Fox', tier: 'uncommon' }, { emoji: '🦌', name: 'Deer', tier: 'rare' }]
             },
@@ -605,7 +606,7 @@
                 bg: 'linear-gradient(#b7e8c4 0%, #4fb47a 32%, #1f6b3c 48%, #164d2b 100%)',
                 fog: 'rgba(120, 170, 130, 0.85)', zone: [0.56, 0.88],
                 ridges: [{ top: 36, h: 24, color: '#2d8a4e', shape: 1 }, { top: 46, h: 20, color: '#1d6a38', shape: 0 }],
-                deco: [['🌴', 4, 30, 6], ['🌴', 84, 28, 5.5], ['🌳', 40, 36, 5], ['🌿', 18, 68, 3.2], ['🌺', 30, 78, 2.4], ['🌿', 56, 72, 3.2], ['🌺', 70, 84, 2.2], ['🌿', 90, 70, 3], ['🍃', 48, 86, 2], ['🪨', 12, 88, 2]],
+                deco: [['🌴', 4, 54, 6], ['🌴', 84, 52, 5.5], ['🌳', 40, 58, 5], ['🌿', 18, 80, 3.2], ['🌺', 30, 88, 2.4], ['🌿', 56, 84, 3.2], ['🌺', 70, 94, 2.2], ['🌿', 90, 82, 3], ['🍃', 48, 96, 2], ['🪨', 12, 96, 2]],
                 ambient: [['vines', 7], ['leaves', 12, '🍃'], ['mist'], ['butterflies', 2]],
                 animals: [{ emoji: '🦥', name: 'Sloth', tier: 'common' }, { emoji: '🦜', name: 'Toucan', tier: 'uncommon' }, { emoji: '🐆', name: 'Jaguar', tier: 'rare' }]
             },
@@ -614,7 +615,7 @@
                 bg: 'linear-gradient(#0f2b4e 0%, #2c5f8f 30%, #a9d6ee 48%, #eef7fb 49%, #d6ecf6 100%)',
                 fog: 'rgba(240, 246, 250, 0.9)', zone: [0.52, 0.84],
                 ridges: [{ top: 30, h: 22, color: '#dbe9f3', shape: 3 }, { top: 40, h: 16, color: '#f6fbfe', shape: 4 }],
-                deco: [['🧊', 16, 56, 3.5], ['🧊', 70, 60, 3], ['🧊', 44, 90, 2.4], ['🧊', 88, 92, 2.2]],
+                deco: [['🧊', 16, 66, 3.5], ['🧊', 70, 70, 3], ['🧊', 44, 98, 2.4], ['🧊', 88, 99, 2.2]],
                 ambient: [['aurora'], ['snow', 60], ['waves', { top: 86, h: 14, color: 'rgba(110, 170, 215, 0.95)' }]],
                 animals: [{ emoji: '🦭', name: 'Seal', tier: 'common' }, { emoji: '🐻‍❄️', name: 'Polar bear', tier: 'uncommon' }, { emoji: '🐳', name: 'Whale', tier: 'rare' }]
             },
@@ -623,7 +624,7 @@
                 bg: 'linear-gradient(#1b1036 0%, #3b2160 40%, #d9772b 52%, #3a2416 56%, #241509 100%)',
                 fog: 'rgba(110, 70, 140, 0.85)', zone: [0.58, 0.88], stars: 50, moon: { x: 72, y: 8, size: 80 },
                 ridges: [{ top: 46, h: 22, color: '#2b1a3e', shape: 3 }, { top: 54, h: 18, color: '#1c1028', shape: 1 }],
-                deco: [['🏚️', 52, 30, 6], ['🌳', 10, 36, 5, 'dead'], ['🌳', 86, 38, 4.5, 'dead'], ['🪦', 24, 70, 3], ['🪦', 36, 76, 2.6], ['🪦', 70, 72, 3], ['🎃', 8, 80, 3.2, 'flicker'], ['🎃', 60, 84, 3, 'flicker'], ['🎃', 90, 80, 2.8, 'flicker'], ['🕸️', 94, 18, 3], ['🍂', 45, 90, 2], ['🕯️', 54, 44, 1.4, 'flicker']],
+                deco: [['🏚️', 52, 76, 6], ['🌳', 10, 60, 5, 'dead'], ['🌳', 86, 61, 4.5, 'dead'], ['🪦', 24, 84, 3], ['🪦', 36, 88, 2.6], ['🪦', 70, 86, 3], ['🎃', 8, 94, 3.2, 'flicker'], ['🎃', 60, 97, 3, 'flicker'], ['🎃', 90, 93, 2.8, 'flicker'], ['🕸️', 94, 26, 3], ['🍂', 45, 99, 2], ['🕯️', 57, 75, 1.4, 'flicker']],
                 ambient: [['bats', 6], ['clouds', 3, 'dark'], ['fireflies', 14]],
                 animals: [{ emoji: '🐈‍⬛', name: 'Black cat', tier: 'common' }, { emoji: '🦇', name: 'Bat', tier: 'uncommon' }, { emoji: '👻', name: 'Friendly ghost', tier: 'rare' }]
             },
@@ -632,7 +633,7 @@
                 bg: 'linear-gradient(#ffe2b3 0%, #f3b06a 42%, #b8743a 50%, #7a4a22 100%)',
                 fog: 'rgba(190, 130, 70, 0.85)', zone: [0.58, 0.88], sun: { color: '#ffe8b0', x: 18, y: 10, size: 80 },
                 ridges: [{ top: 40, h: 22, color: '#d6973f', shape: 0 }, { top: 48, h: 20, color: '#b0702e', shape: 1 }],
-                deco: [['🏡', 76, 30, 5.5], ['🌳', 4, 36, 5, 'autumn'], ['🌳', 34, 38, 4.5, 'autumn'], ['🌳', 94, 40, 4, 'autumn'], ['🌽', 12, 62, 3], ['🌽', 18, 66, 3], ['🌽', 24, 62, 3], ['🎃', 56, 82, 3], ['🎃', 64, 86, 2.4], ['🍁', 40, 76, 2.2], ['🍂', 82, 78, 2.2], ['🌾', 90, 86, 2.5], ['🌾', 46, 90, 2.2]],
+                deco: [['🏡', 76, 76, 5.5], ['🌳', 4, 56, 5, 'autumn'], ['🌳', 34, 58, 4.5, 'autumn'], ['🌳', 94, 57, 4, 'autumn'], ['🌽', 12, 80, 3], ['🌽', 18, 82, 3], ['🌽', 24, 80, 3], ['🎃', 56, 92, 3], ['🎃', 64, 95, 2.4], ['🍁', 40, 86, 2.2], ['🍂', 82, 90, 2.2], ['🌾', 90, 97, 2.5], ['🌾', 46, 99, 2.2]],
                 ambient: [['leaves', 22, '🍂🍁'], ['clouds', 4]],
                 animals: [{ emoji: '🦃', name: 'Turkey', tier: 'common' }, { emoji: '🦌', name: 'Deer', tier: 'uncommon' }, { emoji: '🦉', name: 'Owl', tier: 'rare' }]
             },
@@ -641,7 +642,7 @@
                 bg: 'linear-gradient(#0b1f44 0%, #24508f 42%, #f4f8fb 50%, #dbe8f2 100%)',
                 fog: 'rgba(240, 246, 250, 0.9)', zone: [0.58, 0.88], stars: 60, moon: { x: 14, y: 8, size: 60 },
                 ridges: [{ top: 40, h: 22, color: '#e6eff7', shape: 4 }, { top: 48, h: 18, color: '#fafdff', shape: 0 }],
-                deco: [['🎄', 6, 36, 6], ['🎄', 86, 40, 5.5], ['🎄', 30, 46, 4], ['🏠', 52, 32, 5.5], ['🎁', 24, 82, 2.5], ['🎁', 70, 86, 2.2], ['🎁', 40, 90, 2], ['🛷', 82, 80, 2.4], ['❄️', 64, 60, 1.6]],
+                deco: [['🎄', 6, 78, 6], ['🎄', 86, 80, 5.5], ['🎄', 30, 62, 4], ['🏠', 52, 76, 5.5], ['🎁', 24, 94, 2.5], ['🎁', 70, 97, 2.2], ['🎁', 40, 99, 2], ['🛷', 82, 94, 2.4], ['❄️', 64, 40, 1.6]],
                 ambient: [['snow', 70], ['lights', 28]],
                 animals: [{ emoji: '🐧', name: 'Penguin', tier: 'common' }, { emoji: '⛄', name: 'Snowman', tier: 'uncommon' }, { emoji: '🦌', name: 'Reindeer', tier: 'rare' }]
             },
@@ -650,7 +651,7 @@
                 bg: 'linear-gradient(#ffe0ec 0%, #ffb9d2 42%, #b4e0a4 50%, #7fbf72 100%)',
                 fog: 'rgba(240, 170, 200, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff0c8', x: 80, y: 8, size: 70 },
                 ridges: [{ top: 40, h: 22, color: '#9fd48f', shape: 1 }, { top: 48, h: 20, color: '#88c57a', shape: 0 }],
-                deco: [['🌳', 8, 36, 5], ['🌳', 90, 38, 4.5], ['🌹', 14, 72, 2.8], ['🌷', 28, 80, 2.6], ['🌸', 44, 70, 2.4], ['🌺', 60, 84, 2.4], ['🌷', 76, 74, 2.6], ['🌼', 90, 86, 2.2], ['💌', 50, 90, 2], ['🌱', 36, 90, 1.8]],
+                deco: [['🌳', 8, 58, 5], ['🌳', 90, 60, 4.5], ['🌹', 14, 86, 2.8], ['🌷', 28, 92, 2.6], ['🌸', 44, 84, 2.4], ['🌺', 60, 96, 2.4], ['🌷', 76, 88, 2.6], ['🌼', 90, 98, 2.2], ['💌', 50, 99, 2], ['🌱', 36, 99, 1.8]],
                 ambient: [['hearts', 14], ['petals', 12], ['clouds', 4]],
                 animals: [{ emoji: '🐰', name: 'Bunny', tier: 'common' }, { emoji: '🦢', name: 'Swan', tier: 'uncommon' }, { emoji: '🦋', name: 'Butterfly', tier: 'rare' }]
             },
@@ -659,7 +660,7 @@
                 bg: 'linear-gradient(#d4f0fc 0%, #9fdcf4 42%, #5bbd6c 50%, #2e8b44 100%)',
                 fog: 'rgba(120, 190, 130, 0.85)', zone: [0.58, 0.88],
                 ridges: [{ top: 38, h: 24, color: '#5cb86a', shape: 0 }, { top: 46, h: 22, color: '#3f9c50', shape: 1 }],
-                deco: [['🏰', 10, 24, 5.5], ['🌳', 36, 40, 4.5], ['🌳', 90, 42, 4], ['☘️', 18, 72, 2.4], ['🍀', 32, 84, 2.4], ['☘️', 50, 76, 2.4], ['🍀', 66, 88, 2.2], ['☘️', 84, 74, 2.4], ['🪙', 70, 60, 2.4], ['🌼', 56, 90, 1.8]],
+                deco: [['🏰', 10, 78, 5.5], ['🌳', 36, 58, 4.5], ['🌳', 90, 60, 4], ['☘️', 18, 88, 2.4], ['🍀', 32, 96, 2.4], ['☘️', 50, 90, 2.4], ['🍀', 66, 99, 2.2], ['☘️', 84, 88, 2.4], ['🪙', 70, 80, 2.4], ['🌼', 56, 99, 1.8]],
                 ambient: [['rainbow'], ['clover', 14], ['clouds', 4]],
                 animals: [{ emoji: '🐑', name: 'Sheep', tier: 'common' }, { emoji: '🐇', name: 'Hare', tier: 'uncommon' }, { emoji: '🧚', name: 'Fairy', tier: 'rare' }]
             }
@@ -747,46 +748,46 @@
             const skyBottom = s.zone[0] * 100 - 10;
             switch (kind) {
                 case 'clouds':
-                    for (let i = 0; i < n; i++) h += `<div class="amb cloud ${opt === 'dark' ? 'dark' : ''}" style="top:${rnd(2, Math.max(6, skyBottom - 16)).toFixed(1)}%;font-size:${rnd(3, 6).toFixed(1)}rem;opacity:${rnd(0.55, 0.9).toFixed(2)};animation-duration:${rnd(70, 140).toFixed(0)}s;animation-delay:${rnd(-140, 0).toFixed(0)}s">☁️</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb cloud ${opt === 'dark' ? 'dark' : ''}" style="top:${rnd(2, Math.max(6, skyBottom - 16)).toFixed(1)}%;font-size:${rnd(3, 6).toFixed(1)}rem;opacity:${rnd(0.55, 0.9).toFixed(2)};animation-duration:${rnd(140, 240).toFixed(0)}s;animation-delay:${rnd(-240, 0).toFixed(0)}s">☁️</div>`;
                     break;
                 case 'birds':
-                    for (let i = 0; i < n; i++) h += `<div class="amb bird" style="top:${rnd(8, 24).toFixed(1)}%;font-size:1.3rem;animation-duration:${rnd(40, 70).toFixed(0)}s;animation-delay:${rnd(-60, 0).toFixed(0)}s">🕊️</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb bird" style="top:${rnd(8, 24).toFixed(1)}%;font-size:1.3rem;animation-duration:${rnd(90, 140).toFixed(0)}s;animation-delay:${rnd(-140, 0).toFixed(0)}s">🕊️</div>`;
                     break;
                 case 'bats':
-                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(6, 34).toFixed(1)}%;font-size:${rnd(1.2, 2).toFixed(1)}rem;animation-duration:${rnd(18, 32).toFixed(0)}s,${rnd(0.5, 0.9).toFixed(2)}s;animation-delay:${rnd(-30, 0).toFixed(0)}s,0s">🦇</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(6, 34).toFixed(1)}%;font-size:${rnd(1.2, 2).toFixed(1)}rem;animation-duration:${rnd(40, 60).toFixed(0)}s,${rnd(0.9, 1.4).toFixed(2)}s;animation-delay:${rnd(-60, 0).toFixed(0)}s,0s">🦇</div>`;
                     break;
                 case 'butterflies':
-                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(30, 60).toFixed(1)}%;font-size:1.4rem;animation-duration:${rnd(40, 60).toFixed(0)}s,${rnd(0.8, 1.2).toFixed(2)}s;animation-delay:${rnd(-50, 0).toFixed(0)}s,0s">🦋</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(30, 60).toFixed(1)}%;font-size:1.4rem;animation-duration:${rnd(80, 110).toFixed(0)}s,${rnd(1.2, 1.8).toFixed(2)}s;animation-delay:${rnd(-110, 0).toFixed(0)}s,0s">🦋</div>`;
                     break;
                 case 'snow':
-                    for (let i = 0; i < n; i++) h += `<div class="amb flake" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(3, 7).toFixed(0)}px;height:${rnd(3, 7).toFixed(0)}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--drift:${rnd(-40, 40).toFixed(0)}px;animation-duration:${rnd(9, 18).toFixed(1)}s;animation-delay:${rnd(-18, 0).toFixed(1)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb flake" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(3, 7).toFixed(0)}px;height:${rnd(3, 7).toFixed(0)}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--drift:${rnd(-40, 40).toFixed(0)}px;animation-duration:${rnd(18, 32).toFixed(1)}s;animation-delay:${rnd(-32, 0).toFixed(1)}s"></div>`;
                     break;
                 case 'leaves':
-                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(1, 1.8).toFixed(1)}rem;--drift:${rnd(-80, 80).toFixed(0)}px;--rot:${rnd(-360, 360).toFixed(0)}deg;animation-duration:${rnd(10, 20).toFixed(1)}s;animation-delay:${rnd(-20, 0).toFixed(1)}s">${pick(opt || '🍂')}</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(1, 1.8).toFixed(1)}rem;--drift:${rnd(-80, 80).toFixed(0)}px;--rot:${rnd(-360, 360).toFixed(0)}deg;animation-duration:${rnd(20, 36).toFixed(1)}s;animation-delay:${rnd(-36, 0).toFixed(1)}s">${pick(opt || '🍂')}</div>`;
                     break;
                 case 'petals':
-                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.8, 1.3).toFixed(1)}rem;--drift:${rnd(-60, 60).toFixed(0)}px;--rot:${rnd(-300, 300).toFixed(0)}deg;animation-duration:${rnd(12, 22).toFixed(1)}s;animation-delay:${rnd(-22, 0).toFixed(1)}s">🌸</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.8, 1.3).toFixed(1)}rem;--drift:${rnd(-60, 60).toFixed(0)}px;--rot:${rnd(-300, 300).toFixed(0)}deg;animation-duration:${rnd(24, 40).toFixed(1)}s;animation-delay:${rnd(-40, 0).toFixed(1)}s">🌸</div>`;
                     break;
                 case 'bubbles':
-                    for (let i = 0; i < n; i++) h += `<div class="amb bubble" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(5, 14).toFixed(0)}px;height:${rnd(5, 14).toFixed(0)}px;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(8, 16).toFixed(1)}s;animation-delay:${rnd(-16, 0).toFixed(1)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb bubble" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(5, 14).toFixed(0)}px;height:${rnd(5, 14).toFixed(0)}px;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(16, 28).toFixed(1)}s;animation-delay:${rnd(-28, 0).toFixed(1)}s"></div>`;
                     break;
                 case 'hearts':
-                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.8).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-50, 50).toFixed(0)}px;animation-duration:${rnd(14, 26).toFixed(1)}s;animation-delay:${rnd(-26, 0).toFixed(1)}s">${pick('💗💕💖❤️')}</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.8).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-50, 50).toFixed(0)}px;animation-duration:${rnd(28, 46).toFixed(1)}s;animation-delay:${rnd(-46, 0).toFixed(1)}s">${pick('💗💕💖❤️')}</div>`;
                     break;
                 case 'clover':
-                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.5).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-60, 60).toFixed(0)}px;animation-duration:${rnd(16, 28).toFixed(1)}s;animation-delay:${rnd(-28, 0).toFixed(1)}s">${pick('☘️🍀✨')}</div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.5).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-60, 60).toFixed(0)}px;animation-duration:${rnd(30, 50).toFixed(1)}s;animation-delay:${rnd(-50, 0).toFixed(1)}s">${pick('☘️🍀✨')}</div>`;
                     break;
                 case 'fireflies':
-                    for (let i = 0; i < n; i++) h += `<div class="amb firefly" style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(40, 90).toFixed(1)}%;--dx:${rnd(-40, 40).toFixed(0)}px;--dy:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(5, 9).toFixed(1)}s,${rnd(2, 4).toFixed(1)}s;animation-delay:${rnd(-9, 0).toFixed(1)}s,${rnd(-4, 0).toFixed(1)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb firefly" style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(40, 90).toFixed(1)}%;--dx:${rnd(-40, 40).toFixed(0)}px;--dy:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(10, 16).toFixed(1)}s,${rnd(3, 5).toFixed(1)}s;animation-delay:${rnd(-16, 0).toFixed(1)}s,${rnd(-5, 0).toFixed(1)}s"></div>`;
                     break;
                 case 'shooting':
-                    for (let i = 0; i < n; i++) h += `<div class="amb shooting" style="left:${rnd(10, 90).toFixed(1)}%;top:${rnd(5, 50).toFixed(1)}%;animation-duration:${rnd(2, 3).toFixed(1)}s;animation-delay:${rnd(0, 20).toFixed(1)}s;animation-iteration-count:infinite;--gap:${rnd(10, 25).toFixed(0)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb shooting" style="left:${rnd(10, 90).toFixed(1)}%;top:${rnd(5, 50).toFixed(1)}%;animation-duration:${rnd(14, 24).toFixed(1)}s;animation-delay:${rnd(0, 20).toFixed(1)}s;animation-iteration-count:infinite;--gap:${rnd(10, 25).toFixed(0)}s"></div>`;
                     break;
                 case 'nebula':
-                    for (let i = 0; i < n; i++) h += `<div class="amb nebula" style="left:${rnd(0, 80).toFixed(1)}%;top:${rnd(0, 70).toFixed(1)}%;width:${rnd(20, 40).toFixed(0)}vw;height:${rnd(20, 40).toFixed(0)}vw;background:radial-gradient(circle, ${['rgba(140,90,220,0.35)', 'rgba(60,140,220,0.3)', 'rgba(220,90,160,0.28)'][i % 3]} 0%, transparent 70%);animation-duration:${rnd(30, 50).toFixed(0)}s;animation-delay:${rnd(-50, 0).toFixed(0)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb nebula" style="left:${rnd(0, 80).toFixed(1)}%;top:${rnd(0, 70).toFixed(1)}%;width:${rnd(20, 40).toFixed(0)}vw;height:${rnd(20, 40).toFixed(0)}vw;background:radial-gradient(circle, ${['rgba(140,90,220,0.35)', 'rgba(60,140,220,0.3)', 'rgba(220,90,160,0.28)'][i % 3]} 0%, transparent 70%);animation-duration:${rnd(60, 90).toFixed(0)}s;animation-delay:${rnd(-90, 0).toFixed(0)}s"></div>`;
                     break;
                 case 'smoke':
-                    for (let i = 0; i < n; i++) h += `<div class="amb smoke" style="left:${opt.x}%;top:${opt.y}%;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(6, 10).toFixed(1)}s;animation-delay:${rnd(-10, 0).toFixed(1)}s"></div>`;
+                    for (let i = 0; i < n; i++) h += `<div class="amb smoke" style="left:${opt.x}%;top:${opt.y}%;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(12, 18).toFixed(1)}s;animation-delay:${rnd(-18, 0).toFixed(1)}s"></div>`;
                     break;
                 case 'waves':
                     h += `<div class="amb wavebox" style="top:${opt.top}%;height:${opt.h}%"><svg class="wave w1" viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="${opt.color}" d="M0,10 C12,2 25,18 37,10 S62,2 75,10 S100,18 112,10 S137,2 150,10 S175,18 187,10 S200,6 200,10 L200,20 L0,20 Z"/></svg><svg class="wave w2" viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="${opt.color}" d="M0,12 C15,20 30,4 45,12 S75,20 90,12 S120,4 135,12 S165,20 180,12 S200,8 200,12 L200,20 L0,20 Z"/></svg></div>`;
@@ -795,7 +796,7 @@
                     for (let i = 0; i < 4; i++) h += `<div class="amb ray" style="left:${15 + i * 22}%;animation-delay:${(i * 1.7).toFixed(1)}s"></div>`;
                     break;
                 case 'mist':
-                    for (let i = 0; i < 2; i++) h += `<div class="amb mist" style="top:${(s.zone[0] * 100 + 2 + i * 14).toFixed(0)}%;animation-duration:${rnd(40, 70).toFixed(0)}s;animation-delay:${rnd(-70, 0).toFixed(0)}s"></div>`;
+                    for (let i = 0; i < 2; i++) h += `<div class="amb mist" style="top:${(s.zone[0] * 100 + 2 + i * 14).toFixed(0)}%;animation-duration:${rnd(80, 120).toFixed(0)}s;animation-delay:${rnd(-120, 0).toFixed(0)}s"></div>`;
                     break;
                 case 'aurora':
                     h += `<div class="amb aurora"></div>`;
@@ -806,16 +807,17 @@
                 case 'vines':
                     for (let i = 0; i < n; i++) {
                         const x = rnd(3, 97).toFixed(1), len = rnd(14, 34).toFixed(0);
-                        h += `<div class="amb vine" style="left:${x}%;height:${len}%;animation-duration:${rnd(5, 9).toFixed(1)}s;animation-delay:${rnd(-9, 0).toFixed(1)}s"><span>🌿</span></div>`;
+                        h += `<div class="amb vine" style="left:${x}%;height:${len}%;animation-duration:${rnd(9, 14).toFixed(1)}s;animation-delay:${rnd(-14, 0).toFixed(1)}s"><span>🌿</span></div>`;
                     }
                     break;
                 case 'lights':
                     // Twinkling lights clustered on the holiday trees
-                    const spots = [[6, 36, 6], [86, 40, 5.5], [30, 46, 4]];
+                    const spots = [[6, 78, 6], [86, 80, 5.5], [30, 62, 4]];   // x, base y, size (rem) of each tree
                     for (let i = 0; i < n; i++) {
                         const t = spots[i % spots.length];
-                        const w = t[2] * 1.0, hh = t[2] * 1.1;   // rough emoji box in rem -> approximate in % via vw
-                        h += `<div class="amb light" style="left:calc(${t[0]}% + ${rnd(0.3, w - 0.3).toFixed(2)}rem);top:calc(${t[1]}% + ${rnd(0.8, hh - 0.3).toFixed(2)}rem);background:${['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#ff4081'][i % 5]};animation-delay:${rnd(0, 3).toFixed(1)}s"></div>`;
+                        const up = rnd(0.25, 0.9) * t[2];                 // height up the tree
+                        const halfWidth = (1 - up / t[2]) * t[2] * 0.42;  // narrower near the top
+                        h += `<div class="amb light" style="left:calc(${t[0]}% + ${(t[2] * 0.5 + rnd(-halfWidth, halfWidth)).toFixed(2)}rem);top:calc(${t[1]}% - ${up.toFixed(2)}rem);background:${['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#ff4081'][i % 5]};animation-delay:${rnd(0, 3).toFixed(1)}s"></div>`;
                     }
                     break;
             }
@@ -852,7 +854,7 @@
                 const cls = ['deco'];
                 if (SWAY_EMOJI.includes(d[0])) cls.push('sway');
                 if (d[4]) cls.push(d[4]);
-                html += `<div class="${cls.join(' ')}" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem;animation-duration:${rnd(4, 7).toFixed(1)}s;animation-delay:${rnd(-7, 0).toFixed(1)}s">${d[0]}</div>`;
+                html += `<div class="${cls.join(' ')}" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem;animation-duration:${rnd(7, 11).toFixed(1)}s;animation-delay:${rnd(-11, 0).toFixed(1)}s">${d[0]}</div>`;
             });
             // Foreground ambience: snow, leaves, bubbles, hearts, mist, waves, smoke, vines, lights
             amb.filter(a => !behind.includes(a[0])).forEach(a => { html += run(a); });
@@ -877,7 +879,7 @@
             el.style.left = a.x + '%';
             el.style.top = a.y + '%';
             el.style.fontSize = size + 'rem';
-            el.style.setProperty('--dur', (7 + Math.random() * 8).toFixed(1) + 's');
+            el.style.setProperty('--dur', (13 + Math.random() * 10).toFixed(1) + 's');
             el.style.setProperty('--delay', fresh ? '0s' : (-Math.random() * 8).toFixed(1) + 's');
             el.style.setProperty('--wx', Math.round(20 + Math.random() * 50) + 'px');
             el.style.zIndex = Math.round(a.y);
