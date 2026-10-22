@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Timer - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #1f6f8b; }
+
+        .tool-container { max-width: 1300px; }
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 380px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        @media (max-width: 980px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+
+        /* ---- Display ---- */
+        .display-box { padding: 1.5rem; }
+        .timer-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+        .pie-wrap {
+            position: relative;
+            width: min(100%, 440px);
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+        }
+        .pie-wrap canvas { width: 100%; height: 100%; display: block; }
+        .pie-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            text-align: center;
+        }
+        .pie-center .seg-emoji { font-size: 2.2rem; line-height: 1; }
+        .pie-center .seg-label {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text);
+            max-width: 42%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .pie-center .seg-time {
+            font-size: 3rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.05;
+            color: var(--tool-color);
+        }
+        .pie-center .total-left {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-variant-numeric: tabular-nums;
+        }
+        .pie-center .overtime { color: var(--accent); }
+        .status-line {
+            min-height: 1.6rem;
+            margin-top: 0.75rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        .status-line.waiting { color: var(--accent); animation: pulse 1s ease-in-out infinite; }
+        .controls { margin-top: 1rem; }
+
+        .segment-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .seg-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            background: #f0f2f5;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-left: 8px solid var(--c);
+        }
+        .seg-chip.done { opacity: 0.45; text-decoration: line-through; }
+        .seg-chip.current { background: color-mix(in srgb, var(--c) 22%, white); box-shadow: 0 0 0 2px var(--c); }
+        .seg-chip .mins { color: var(--text-light); font-weight: 500; }
+
+        /* ---- Fullscreen ---- */
+        body.fullscreen { overflow: hidden; }
+        body.fullscreen .tool-header,
+        body.fullscreen .side-panel,
+        body.fullscreen .segment-strip,
+        body.fullscreen .timer-title { display: none; }
+        body.fullscreen .tool-container { max-width: none; margin: 0; padding: 0; }
+        body.fullscreen .layout { display: block; }
+        body.fullscreen .display-box {
+            position: fixed;
+            inset: 0;
+            margin: 0;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+        }
+        body.fullscreen .pie-wrap { width: min(80vw, 72vh); }
+        body.fullscreen .pie-center .seg-label { color: white; font-size: 1.6rem; }
+        body.fullscreen .pie-center .seg-time { color: white; font-size: 4.5rem; }
+        body.fullscreen .pie-center .seg-emoji { font-size: 3rem; }
+        body.fullscreen .pie-center .total-left { color: rgba(255,255,255,0.7); font-size: 1.2rem; }
+        body.fullscreen .pie-center .overtime { color: #ff8a9a; }
+        body.fullscreen .status-line { color: rgba(255,255,255,0.8); font-size: 1.2rem; }
+        body.fullscreen .status-line.waiting { color: #ffd166; }
+        body.fullscreen .btn-secondary { background: rgba(255,255,255,0.15); color: white; }
+        body.fullscreen .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+        body.high-contrast .pie-center .seg-time { color: var(--text); }
+        body.high-contrast .seg-chip { border: 2px solid var(--text); border-left-width: 8px; }
+
+        /* ---- Side panel ---- */
+        .side-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+        .panel-section {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.25rem;
+        }
+        .panel-section h2 {
+            font-size: 1.05rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .timer-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.75rem; }
+        .timer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            background: #f7f8fa;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .timer-item:hover { background: #eef1f4; }
+        .timer-item.active { border-color: var(--tool-color); background: #fff; }
+        .timer-item .t-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .timer-item .t-meta { color: var(--text-light); font-size: 0.85rem; white-space: nowrap; }
+        .btn-small { padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 6px; }
+        .btn-tiny {
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .seg-rows { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .seg-row {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) 64px 36px auto;
+            gap: 0.35rem;
+            align-items: center;
+        }
+        .seg-row input, .seg-row select {
+            width: 100%;
+            padding: 0.45rem 0.5rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 0.95rem;
+        }
+        .seg-row input:focus, .seg-row select:focus { outline: none; border-color: var(--tool-color); }
+        .seg-row .emoji-in { text-align: center; padding-left: 0.2rem; padding-right: 0.2rem; }
+        .seg-row .mins-in { text-align: center; }
+        .color-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 2px solid #dfe6e9;
+            cursor: pointer;
+            background: var(--c);
+            padding: 0;
+        }
+        .seg-row .row-btns { display: flex; gap: 0.2rem; }
+        .color-pop {
+            position: absolute;
+            z-index: 50;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: var(--shadow-hover);
+            padding: 0.5rem;
+            display: none;
+            grid-template-columns: repeat(5, 28px);
+            gap: 0.35rem;
+        }
+        .color-pop.open { display: grid; }
+        .color-pop button {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .color-pop button.sel { border-color: var(--text); }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+        }
+        .setting-row label { flex: 1; font-weight: 600; }
+        .setting-row select {
+            padding: 0.4rem 0.6rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            font: inherit;
+            background: #fff;
+        }
+        .setting-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--tool-color); }
+        .hint { font-size: 0.85rem; color: var(--text-light); margin-top: 0.5rem; }
+        .total-line { font-weight: 700; color: var(--text-light); margin-bottom: 0.75rem; }
+
+        @media (max-width: 600px) {
+            .pie-center .seg-time { font-size: 2.2rem; }
+            .seg-row { grid-template-columns: 40px minmax(0,1fr) 56px 32px auto; }
+        }
+        @media print { .side-panel { display: none; } }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Lesson Timer</h1>
+    </header>
+
+    <div class="tool-container">
+        <div class="layout">
+            <main>
+                <div class="display-box" id="displayBox">
+                    <div class="timer-title" id="timerTitle"></div>
+                    <div class="pie-wrap">
+                        <canvas id="pie" width="600" height="600" aria-label="Pie timer"></canvas>
+                        <div class="pie-center">
+                            <div class="seg-emoji" id="segEmoji"></div>
+                            <div class="seg-label" id="segLabel"></div>
+                            <div class="seg-time" id="segTime">0:00</div>
+                            <div class="total-left" id="totalLeft"></div>
+                        </div>
+                    </div>
+                    <div class="status-line" id="statusLine"></div>
+                    <div class="btn-group controls">
+                        <button class="btn btn-primary btn-large" id="startBtn" onclick="toggleRun()">&#9654; Start</button>
+                        <button class="btn btn-secondary" id="nextBtn" onclick="advanceRun()">Next &#9654;&#9654;</button>
+                        <button class="btn btn-secondary" id="plusBtn" onclick="addMinute()">+1 min</button>
+                        <button class="btn btn-secondary" id="resetBtn" onclick="resetRun()">Reset</button>
+                        <button class="btn btn-secondary" id="fsBtn" onclick="toggleFullscreen()">&#9974; Fullscreen</button>
+                        <button class="btn btn-secondary" id="popBtn" onclick="popOut()" style="display:none">&#10697; Pop-out</button>
+                    </div>
+                    <div class="segment-strip" id="segmentStrip"></div>
+                </div>
+            </main>
+
+            <aside class="side-panel">
+                <section class="panel-section">
+                    <h2>Timers <button class="btn btn-secondary btn-small" onclick="newTimer()">+ New</button></h2>
+                    <div class="timer-list" id="timerList"></div>
+                    <div class="btn-group" style="justify-content:flex-start;">
+                        <button class="btn btn-secondary btn-small" onclick="duplicateTimer()">Duplicate</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteTimer()">Delete</button>
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h2>Edit timer</h2>
+                    <div class="input-group">
+                        <label for="timerName">Name</label>
+                        <input id="timerName" type="text" maxlength="40" oninput="renameTimer(this.value)">
+                    </div>
+                    <div class="total-line" id="totalLine"></div>
+                    <div class="seg-rows" id="segRows"></div>
+                    <button class="btn btn-secondary btn-small" id="addSegBtn" onclick="addSegment()">+ Add segment</button>
+                    <p class="hint">Each segment is one part of the lesson. Give it a short label, an emoji if you like, and how many minutes it gets.</p>
+                </section>
+
+                <section class="panel-section">
+                    <h2>Timer settings</h2>
+                    <div class="setting-row">
+                        <label for="advanceSel">When a segment ends</label>
+                        <select id="advanceSel" onchange="setTimerSetting('advance', this.value)">
+                            <option value="auto">Move on automatically</option>
+                            <option value="tap">Wait until I tap Next</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label for="chimeSel">Chime between segments</label>
+                        <select id="chimeSel" onchange="setTimerSetting('chime', this.value); previewSound(this.value)">
+                            <option value="chime">Chime</option>
+                            <option value="bell">Bell</option>
+                            <option value="marimba">Marimba</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label for="endSel">Sound at the end</label>
+                        <select id="endSel" onchange="setTimerSetting('endSound', this.value); previewSound(this.value)">
+                            <option value="harp">Harp</option>
+                            <option value="gong">Gong</option>
+                            <option value="bells">Bells</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label for="overtimeChk">Count up after the end (overtime)</label>
+                        <input id="overtimeChk" type="checkbox" onchange="setTimerSetting('overtime', this.checked)">
+                    </div>
+                    <div class="setting-row">
+                        <label for="contrastChk">High contrast display</label>
+                        <input id="contrastChk" type="checkbox" onchange="setHighContrast(this.checked)">
+                    </div>
+                </section>
+
+                <section class="panel-section">
+                    <h2>Backup</h2>
+                    <div class="btn-group" style="justify-content:flex-start;">
+                        <button class="btn btn-secondary btn-small" onclick="downloadBackup()">Download backup</button>
+                        <button class="btn btn-secondary btn-small" onclick="document.getElementById('restoreInput').click()">Restore from file</button>
+                        <input type="file" id="restoreInput" accept="application/json,.json" style="display:none" onchange="restoreBackup(this)">
+                    </div>
+                    <p class="hint">Timers are saved in this browser. Download a backup to move them to another computer.</p>
+                </section>
+            </aside>
+        </div>
+    </div>
+
+    <div class="color-pop" id="colorPop"></div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        // ---------- Constants ----------
+        const COLORS = [
+            { id: 'yellow', hex: '#f1c40f' }, { id: 'blue',   hex: '#3498db' },
+            { id: 'green',  hex: '#2ecc71' }, { id: 'orange', hex: '#e67e22' },
+            { id: 'red',    hex: '#e74c3c' }, { id: 'purple', hex: '#9b59b6' },
+            { id: 'teal',   hex: '#1abc9c' }, { id: 'pink',   hex: '#e91e63' },
+            { id: 'navy',   hex: '#1a3a6b' }, { id: 'gray',   hex: '#607d8b' }
+        ];
+        const MAX_SEGMENTS = 12;
+        const MIN_MINUTES = 0.5;
+        const MAX_MINUTES = 180;
+        const MAX_LABEL = 24;
+        const STORAGE_KEY = 'w68-lesson-timer';
+        const MS_PER_MIN = 60000;
+        const DEFAULT_TIMER_SETTINGS = { advance: 'auto', chime: 'chime', endSound: 'harp', overtime: true };
+
+        // ---------- State ----------
+        let timers = [];
+        let settings = { highContrast: false, defaults: Object.assign({}, DEFAULT_TIMER_SETTINGS) };
+        let currentId = null;
+        let run = idleRun();
+        let pipWin = null;
+        let colorPopTarget = null;
+
+        function newId() {
+            return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        }
+
+        function colorHex(id) {
+            const c = COLORS.find(x => x.id === id);
+            return c ? c.hex : COLORS[0].hex;
+        }
+
+        function clampMinutes(v) {
+            const n = parseFloat(v);
+            if (!isFinite(n)) return MIN_MINUTES;
+            return Math.min(MAX_MINUTES, Math.max(MIN_MINUTES, Math.round(n * 2) / 2));
+        }
+
+        function firstEmoji(str) {
+            str = String(str || '').trim();
+            if (!str) return '';
+            if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+                const it = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(str)[Symbol.iterator]();
+                const first = it.next();
+                return first.done ? '' : first.value.segment;
+            }
+            return Array.from(str).slice(0, 2).join('');
+        }
+
+        function makeSegment(label, emoji, minutes, color) {
+            return { id: newId(), label: label || '', emoji: emoji || '', minutes: clampMinutes(minutes == null ? 5 : minutes), color: color || COLORS[0].id };
+        }
+
+        function exampleTimer() {
+            return {
+                id: newId(),
+                name: 'Small group',
+                segments: [
+                    makeSegment('Warm-up', '\u{1F44B}', 5, 'yellow'),
+                    makeSegment('Read', '\u{1F4D6}', 15, 'blue'),
+                    makeSegment('Practice', '✏️', 7, 'green'),
+                    makeSegment('Clean up', '\u{1F9F9}', 3, 'orange')
+                ],
+                settings: Object.assign({}, DEFAULT_TIMER_SETTINGS)
+            };
+        }
+
+        function currentTimer() {
+            return timers.find(t => t.id === currentId) || timers[0];
+        }
+
+        // ---------- Persistence ----------
+        function sanitizeTimer(t, i) {
+            const out = {
+                id: typeof t.id === 'string' ? t.id : newId(),
+                name: String(t.name || '').slice(0, 40) || ('Timer ' + (i + 1)),
+                segments: [],
+                settings: Object.assign({}, DEFAULT_TIMER_SETTINGS, settings.defaults)
+            };
+            (Array.isArray(t.segments) ? t.segments : []).slice(0, MAX_SEGMENTS).forEach((s, j) => {
+                out.segments.push({
+                    id: typeof s.id === 'string' ? s.id : newId(),
+                    label: String(s.label || '').slice(0, MAX_LABEL),
+                    emoji: firstEmoji(s.emoji),
+                    minutes: clampMinutes(s.minutes),
+                    color: COLORS.some(c => c.id === s.color) ? s.color : COLORS[j % COLORS.length].id
+                });
+            });
+            if (out.segments.length === 0) out.segments.push(makeSegment('', '', 5, COLORS[0].id));
+            const st = t.settings || {};
+            if (st.advance === 'tap' || st.advance === 'auto') out.settings.advance = st.advance;
+            if (['chime', 'bell', 'marimba', 'none'].includes(st.chime)) out.settings.chime = st.chime;
+            if (['harp', 'gong', 'bells', 'none'].includes(st.endSound)) out.settings.endSound = st.endSound;
+            if (typeof st.overtime === 'boolean') out.settings.overtime = st.overtime;
+            return out;
+        }
+
+        function save() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ timers: timers, settings: settings, currentId: currentId, run: run }));
+            } catch (e) { /* storage unavailable */ }
+        }
+
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data.settings) {
+                    settings.highContrast = !!data.settings.highContrast;
+                    if (data.settings.defaults) settings.defaults = Object.assign({}, DEFAULT_TIMER_SETTINGS, data.settings.defaults);
+                }
+                if (Array.isArray(data.timers)) timers = data.timers.map(sanitizeTimer);
+                if (typeof data.currentId === 'string') currentId = data.currentId;
+                if (data.run && typeof data.run === 'object' && data.run.timerId === currentId) {
+                    run = Object.assign(idleRun(), data.run);
+                    if (!Array.isArray(run.extra)) run.extra = [];
+                }
+            } catch (e) { /* start fresh */ }
+        }
+
+        // ---------- Run logic (timestamps, never counted) ----------
+        function idleRun() {
+            return { timerId: null, started: false, index: 0, elapsed: 0, since: null, extra: [] };
+        }
+
+        function lengthsOf(timer) {
+            return timer.segments.map((s, i) => s.minutes * MS_PER_MIN + (run.extra[i] || 0));
+        }
+
+        function view(timer, now) {
+            const lengths = lengthsOf(timer);
+            const total = lengths.reduce((a, b) => a + b, 0);
+            const idle = !run.started || run.timerId !== timer.id;
+            let index = idle ? 0 : Math.min(run.index, lengths.length - 1);
+            const running = !idle && run.since !== null;
+            let time = idle ? 0 : run.elapsed + (running ? Math.max(0, now - run.since) : 0);
+
+            if (!idle && timer.settings.advance === 'auto') {
+                while (time >= lengths[index] && index < lengths.length - 1) {
+                    time -= lengths[index];
+                    index++;
+                }
+            }
+            const inSegment = Math.min(time, lengths[index]);
+            let usedBefore = 0;
+            for (let i = 0; i < index; i++) usedBefore += lengths[i];
+            const used = usedBefore + inSegment;
+            const reachedZero = !idle && time >= lengths[index];
+            const last = index === lengths.length - 1;
+            let status = 'idle';
+            if (!idle) {
+                if (reachedZero) status = last ? 'ended' : 'waiting';
+                else status = running ? 'running' : 'paused';
+            }
+            return {
+                lengths, total, index, inSegment, used,
+                segmentLeft: lengths[index] - inSegment,
+                totalLeft: total - used,
+                status, running,
+                overtime: status === 'ended' ? time - lengths[index] : 0
+            };
+        }
+
+        // Re-anchor the run at "now" so pause/advance/edits keep the right elapsed time.
+        function settle(timer, now) {
+            const v = view(timer, now);
+            run.index = v.index;
+            run.elapsed = v.lengths[v.index] - v.segmentLeft + v.overtime;
+            run.since = run.since === null ? null : now;
+        }
+
+        function startRun() {
+            const t = currentTimer();
+            unlockAudio();
+            run = idleRun();
+            run.timerId = t.id;
+            run.started = true;
+            run.since = Date.now();
+            afterRunChange();
+        }
+
+        function pauseRun() {
+            const t = currentTimer();
+            settle(t, Date.now());
+            run.since = null;
+            afterRunChange();
+        }
+
+        function resumeRun() {
+            unlockAudio();
+            if (run.since === null) run.since = Date.now();
+            afterRunChange();
+        }
+
+        function toggleRun() {
+            const t = currentTimer();
+            const v = view(t, Date.now());
+            if (v.status === 'idle') startRun();
+            else if (v.status === 'ended') resetRun();
+            else if (v.status === 'running') pauseRun();
+            else if (v.status === 'paused') resumeRun();
+            else if (v.status === 'waiting') advanceRun();
+        }
+
+        function advanceRun() {
+            const t = currentTimer();
+            const now = Date.now();
+            const v = view(t, now);
+            if (v.status === 'idle' || v.status === 'ended') return;
+            unlockAudio();
+            settle(t, now);
+            if (run.index >= t.segments.length - 1) {
+                run.elapsed = v.lengths[run.index];
+            } else {
+                run.index += 1;
+                run.elapsed = 0;
+            }
+            if (run.since !== null) run.since = now;
+            afterRunChange();
+        }
+
+        function addMinute() {
+            const t = currentTimer();
+            const now = Date.now();
+            const v = view(t, now);
+            if (v.status === 'idle') return;
+            settle(t, now);
+            run.extra[run.index] = (run.extra[run.index] || 0) + MS_PER_MIN;
+            // Past zero the segment comes back with one minute left, not "still over".
+            const len = t.segments[run.index].minutes * MS_PER_MIN + run.extra[run.index];
+            if (run.elapsed > len - MS_PER_MIN) run.elapsed = len - MS_PER_MIN;
+            if (run.since === null && v.status !== 'paused') run.since = now;
+            afterRunChange();
+        }
+
+        function resetRun() {
+            run = idleRun();
+            cancelPending();
+            afterRunChange();
+        }
+
+        function afterRunChange() {
+            save();
+            planSounds();
+            render();
+        }
+
+        // ---------- Sounds (synthesized, scheduled on the audio clock) ----------
+        let pending = [];   // { nodes:[], at } for notes that have not started yet
+
+        function unlockAudio() {
+            try { const ctx = getAudioCtx(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) {}
+        }
+
+        function envNote(ctx, type, freq, at, dur, vol) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.0001, at);
+            gain.gain.exponentialRampToValueAtTime(vol, at + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(at);
+            osc.stop(at + dur + 0.05);
+            return [osc, gain];
+        }
+
+        function struckBell(ctx, freq, at, dur, vol) {
+            const ratios = [1, 2, 2.76, 5.4], levels = [1, 0.5, 0.35, 0.15], lens = [1, 0.7, 0.5, 0.3];
+            let nodes = [];
+            ratios.forEach((r, i) => { nodes = nodes.concat(envNote(ctx, 'sine', freq * r, at, dur * lens[i], vol * levels[i])); });
+            return nodes;
+        }
+
+        function synth(name, at) {
+            const ctx = getAudioCtx();
+            switch (name) {
+                case 'chime':   return envNote(ctx, 'sine', 1318.5, at, 1.4, 0.22).concat(envNote(ctx, 'sine', 987.8, at + 0.28, 1.8, 0.22));
+                case 'bell':    return struckBell(ctx, 880, at, 2.6, 0.18);
+                case 'marimba': return envNote(ctx, 'triangle', 523.3, at, 0.5, 0.35).concat(envNote(ctx, 'triangle', 784, at + 0.16, 0.7, 0.35));
+                case 'harp': {
+                    let n = [];
+                    [523.3, 659.3, 784, 1046.5, 1318.5].forEach((f, i) => { n = n.concat(envNote(ctx, 'triangle', f, at + i * 0.13, 2.2, 0.18)); });
+                    return n;
+                }
+                case 'gong':    return struckBell(ctx, 196, at, 5, 0.3);
+                case 'bells': {
+                    let n = [];
+                    [784, 659.3, 523.3].forEach((f, i) => { n = n.concat(struckBell(ctx, f, at + i * 0.55, 2.4, 0.16)); });
+                    return n;
+                }
+                default: return [];
+            }
+        }
+
+        function previewSound(name) {
+            if (name === 'none') return;
+            unlockAudio();
+            try { synth(name, getAudioCtx().currentTime + 0.02); } catch (e) {}
+        }
+
+        function cancelPending() {
+            try {
+                const ctx = getAudioCtx();
+                pending.forEach(p => {
+                    if (p.at > ctx.currentTime + 0.1) p.nodes.forEach(n => { try { n.disconnect(); } catch (e) {} });
+                });
+            } catch (e) {}
+            pending = [];
+        }
+
+        // Schedule every upcoming chime/end sound for this run. Auto timers schedule all
+        // boundaries; tap timers schedule nothing past the next zero.
+        function planSounds() {
+            cancelPending();
+            const t = currentTimer();
+            const v = view(t, Date.now());
+            if (v.status !== 'running') return;
+            let ctx;
+            try { ctx = getAudioCtx(); } catch (e) { return; }
+            if (ctx.state !== 'running') return;
+            const offset = ctx.currentTime - Date.now() / 1000;
+            let at = Date.now() + v.segmentLeft;
+            for (let i = v.index; i < t.segments.length; i++) {
+                const isLast = i === t.segments.length - 1;
+                const name = isLast ? t.settings.endSound : t.settings.chime;
+                const audioAt = at / 1000 + offset;
+                if (name !== 'none' && audioAt > ctx.currentTime) {
+                    pending.push({ nodes: synth(name, audioAt), at: audioAt });
+                }
+                if (t.settings.advance === 'tap' || isLast) break;
+                at += v.lengths[i + 1];
+            }
+        }
+
+        // ---------- Formatting ----------
+        function formatTime(ms) {
+            const s = Math.max(0, Math.ceil(ms / 1000));
+            const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+            if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+            return m + ':' + String(sec).padStart(2, '0');
+        }
+
+        function formatOvertime(ms) {
+            const s = Math.max(0, Math.floor(ms / 1000));
+            const m = Math.floor(s / 60), sec = s % 60;
+            return '+' + m + ':' + String(sec).padStart(2, '0');
+        }
+
+        function minutesLabel(m) {
+            return (Number.isInteger(m) ? m : m.toFixed(1)) + ' min';
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // ---------- Drawing ----------
+        function fitText(ctx, text, maxWidth, maxFont) {
+            let size = maxFont;
+            ctx.font = `bold ${size}px sans-serif`;
+            while (ctx.measureText(text).width > maxWidth && size > 11) { size -= 1; ctx.font = `bold ${size}px sans-serif`; }
+            if (ctx.measureText(text).width <= maxWidth) return text;
+            let t = text;
+            while (t.length > 1 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1);
+            return t + '…';
+        }
+
+        function drawPie(canvas, timer, v, dark) {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, cx = W / 2, cy = W / 2, r = cx - 8;
+            const hub = r * 0.40;
+            ctx.clearRect(0, 0, W, W);
+            if (v.total <= 0) return;
+            const k = (2 * Math.PI) / v.total;
+            const startAngle = -Math.PI / 2;
+            const faded = dark ? 'rgba(255,255,255,0.12)' : '#e6e9ed';
+            const hc = settings.highContrast;
+
+            let acc = 0;
+            timer.segments.forEach((seg, i) => {
+                const len = v.lengths[i];
+                const a0 = startAngle + acc * k;
+                const a1 = a0 + len * k;
+                const done = i < v.index ? len : (i === v.index ? v.inSegment : 0);
+                const aDone = a0 + done * k;
+                const color = colorHex(seg.color);
+
+                // Done part: faded
+                if (done > 0) {
+                    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, aDone); ctx.closePath();
+                    ctx.fillStyle = faded; ctx.fill();
+                }
+                // Remaining part: full colour
+                if (done < len) {
+                    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, aDone, a1); ctx.closePath();
+                    ctx.fillStyle = color; ctx.fill();
+                }
+                // Divider
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a0, a1); ctx.closePath();
+                ctx.strokeStyle = dark ? '#0f2044' : '#fff'; ctx.lineWidth = hc ? 4 : 3; ctx.stroke();
+
+                // Label in the ring between hub and edge
+                const angle = len * k;
+                if (angle > 0.12) {
+                    const mid = a0 + angle / 2;
+                    const ringMid = hub + (r - hub) / 2;
+                    const maxW = (r - hub) * 0.9;
+                    const maxH = 2 * ringMid * Math.sin(Math.min(angle, Math.PI) / 2) * 0.8;
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(mid);
+                    // Keep text upright-ish: flip when on the left half
+                    const flip = Math.cos(mid) < 0;
+                    if (flip) { ctx.rotate(Math.PI); }
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const fontMax = Math.max(13, Math.min(26, Math.floor(maxH * 0.7)));
+                    const text = fitText(ctx, (seg.emoji ? seg.emoji + ' ' : '') + (seg.label || minutesLabel(seg.minutes)), maxW, fontMax);
+                    ctx.fillStyle = done >= len ? (dark ? 'rgba(255,255,255,0.45)' : '#9aa3ab') : '#fff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 3;
+                    ctx.fillText(text, flip ? -ringMid : ringMid, 0);
+                    ctx.restore();
+                }
+                acc += len;
+            });
+
+            // Hand at the current position
+            if (v.status !== 'idle') {
+                const a = startAngle + v.used * k;
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+                ctx.strokeStyle = dark ? '#fff' : '#0f2044'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
+            }
+
+            // Hub
+            ctx.beginPath(); ctx.arc(cx, cy, hub, 0, 2 * Math.PI);
+            ctx.fillStyle = dark ? '#0f2044' : '#fff'; ctx.fill();
+            ctx.strokeStyle = dark ? 'rgba(255,255,255,0.3)' : '#dfe6e9'; ctx.lineWidth = hc ? 4 : 2; ctx.stroke();
+        }
+
+        // ---------- Rendering ----------
+        function render() {
+            const t = currentTimer();
+            const now = Date.now();
+            const v = view(t, now);
+            const dark = document.body.classList.contains('fullscreen');
+            const seg = t.segments[v.index];
+
+            document.getElementById('timerTitle').textContent = t.name;
+            drawPie(document.getElementById('pie'), t, v, dark);
+            document.getElementById('segEmoji').textContent = seg.emoji || '';
+            document.getElementById('segLabel').textContent = seg.label || ('Segment ' + (v.index + 1));
+            const timeEl = document.getElementById('segTime');
+            timeEl.classList.toggle('overtime', v.status === 'ended' && t.settings.overtime);
+            if (v.status === 'ended') {
+                timeEl.textContent = t.settings.overtime ? formatOvertime(v.overtime) : '0:00';
+            } else {
+                timeEl.textContent = formatTime(v.segmentLeft);
+            }
+            document.getElementById('totalLeft').textContent = v.status === 'ended' ? 'Done' : (formatTime(v.totalLeft) + ' total left');
+
+            const status = document.getElementById('statusLine');
+            status.classList.toggle('waiting', v.status === 'waiting');
+            status.textContent = {
+                idle: 'Ready. ' + t.segments.length + ' segment' + (t.segments.length === 1 ? '' : 's') + ', ' + formatTime(v.total) + ' total.',
+                running: 'Segment ' + (v.index + 1) + ' of ' + t.segments.length,
+                paused: 'Paused',
+                waiting: (seg.label || 'Segment ' + (v.index + 1)) + ' is done. Tap Next to continue.',
+                ended: 'Time\'s up!'
+            }[v.status];
+
+            const startBtn = document.getElementById('startBtn');
+            startBtn.innerHTML = {
+                idle: '&#9654; Start', running: '&#10074;&#10074; Pause', paused: '&#9654; Resume',
+                waiting: 'Next &#9654;&#9654;', ended: '&#8634; Reset'
+            }[v.status];
+            document.getElementById('nextBtn').disabled = v.status === 'idle' || v.status === 'ended';
+            document.getElementById('plusBtn').disabled = v.status === 'idle';
+            document.getElementById('resetBtn').disabled = v.status === 'idle';
+
+            const strip = document.getElementById('segmentStrip');
+            strip.innerHTML = t.segments.map((s, i) => {
+                const cls = v.status === 'idle' ? '' : (i < v.index ? 'done' : (i === v.index ? (v.status === 'ended' ? 'done' : 'current') : ''));
+                return `<span class="seg-chip ${cls}" style="--c:${colorHex(s.color)}">${escapeHtml(s.emoji)} ${escapeHtml(s.label || 'Segment ' + (i + 1))} <span class="mins">${minutesLabel(s.minutes + (run.extra[i] || 0) / MS_PER_MIN)}</span></span>`;
+            }).join('');
+
+            if (pipWin) renderPip(t, v);
+        }
+
+        function renderTimerList() {
+            const list = document.getElementById('timerList');
+            list.innerHTML = timers.map(t => {
+                const total = t.segments.reduce((a, s) => a + s.minutes, 0);
+                return `<div class="timer-item ${t.id === currentId ? 'active' : ''}" onclick="selectTimer('${t.id}')">
+                    <span class="t-name">${escapeHtml(t.name)}</span>
+                    <span class="t-meta">${t.segments.length} seg &middot; ${minutesLabel(total)}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderEditor() {
+            const t = currentTimer();
+            document.getElementById('timerName').value = t.name;
+            const total = t.segments.reduce((a, s) => a + s.minutes, 0);
+            document.getElementById('totalLine').textContent = 'Total: ' + minutesLabel(total);
+            const rows = document.getElementById('segRows');
+            rows.innerHTML = t.segments.map((s, i) => `
+                <div class="seg-row">
+                    <input class="emoji-in" type="text" value="${escapeHtml(s.emoji)}" placeholder="&#128578;" aria-label="Emoji" oninput="setSegment(${i}, 'emoji', this.value)">
+                    <input type="text" value="${escapeHtml(s.label)}" placeholder="Label" maxlength="${MAX_LABEL}" aria-label="Label" oninput="setSegment(${i}, 'label', this.value)">
+                    <input class="mins-in" type="number" value="${s.minutes}" min="${MIN_MINUTES}" max="${MAX_MINUTES}" step="0.5" aria-label="Minutes" onchange="setSegment(${i}, 'minutes', this.value)">
+                    <button class="color-btn" style="--c:${colorHex(s.color)}" title="Colour" aria-label="Colour" onclick="openColorPop(event, ${i})"></button>
+                    <div class="row-btns">
+                        <button class="btn btn-secondary btn-tiny" title="Move up" onclick="moveSegment(${i}, -1)" ${i === 0 ? 'disabled' : ''}>&#9650;</button>
+                        <button class="btn btn-secondary btn-tiny" title="Move down" onclick="moveSegment(${i}, 1)" ${i === t.segments.length - 1 ? 'disabled' : ''}>&#9660;</button>
+                        <button class="btn btn-secondary btn-tiny" title="Remove" onclick="removeSegment(${i})" ${t.segments.length <= 1 ? 'disabled' : ''}>&#10005;</button>
+                    </div>
+                </div>`).join('');
+            document.getElementById('addSegBtn').disabled = t.segments.length >= MAX_SEGMENTS;
+            document.getElementById('advanceSel').value = t.settings.advance;
+            document.getElementById('chimeSel').value = t.settings.chime;
+            document.getElementById('endSel').value = t.settings.endSound;
+            document.getElementById('overtimeChk').checked = t.settings.overtime;
+            document.getElementById('contrastChk').checked = settings.highContrast;
+        }
+
+        function renderAll() {
+            document.body.classList.toggle('high-contrast', settings.highContrast);
+            renderTimerList();
+            renderEditor();
+            render();
+        }
+
+        // ---------- Timer management ----------
+        function selectTimer(id) {
+            if (id === currentId) return;
+            currentId = id;
+            run = idleRun();
+            cancelPending();
+            save();
+            renderAll();
+        }
+
+        function newTimer() {
+            const t = { id: newId(), name: 'Timer ' + (timers.length + 1), segments: [makeSegment('', '', 5, COLORS[0].id)], settings: Object.assign({}, settings.defaults) };
+            timers.push(t);
+            selectTimer(t.id);
+            document.getElementById('timerName').focus();
+            document.getElementById('timerName').select();
+        }
+
+        function duplicateTimer() {
+            const t = currentTimer();
+            const copy = sanitizeTimer(JSON.parse(JSON.stringify(t)), timers.length);
+            copy.id = newId();
+            copy.name = (t.name + ' copy').slice(0, 40);
+            copy.segments.forEach(s => s.id = newId());
+            timers.splice(timers.indexOf(t) + 1, 0, copy);
+            selectTimer(copy.id);
+        }
+
+        function deleteTimer() {
+            const t = currentTimer();
+            if (!confirm('Delete "' + t.name + '"?')) return;
+            const idx = timers.indexOf(t);
+            timers = timers.filter(x => x.id !== t.id);
+            if (timers.length === 0) timers.push(exampleTimer());
+            currentId = timers[Math.min(idx, timers.length - 1)].id;
+            run = idleRun();
+            cancelPending();
+            save();
+            renderAll();
+        }
+
+        function renameTimer(value) {
+            currentTimer().name = value.slice(0, 40);
+            save();
+            renderTimerList();
+            document.getElementById('timerTitle').textContent = currentTimer().name;
+        }
+
+        function afterEdit(structural) {
+            const t = currentTimer();
+            if (structural && run.started) settle(t, Date.now());
+            save();
+            renderTimerList();
+            renderEditor();
+            planSounds();
+            render();
+        }
+
+        function setSegment(i, field, value) {
+            const t = currentTimer();
+            const s = t.segments[i];
+            if (!s) return;
+            if (field === 'minutes') { s.minutes = clampMinutes(value); afterEdit(true); return; }
+            if (field === 'emoji') s.emoji = firstEmoji(value);
+            if (field === 'label') s.label = value.slice(0, MAX_LABEL);
+            save();
+            renderTimerList();
+            render();
+        }
+
+        function addSegment() {
+            const t = currentTimer();
+            if (t.segments.length >= MAX_SEGMENTS) return;
+            t.segments.push(makeSegment('', '', 5, COLORS[t.segments.length % COLORS.length].id));
+            afterEdit(true);
+            const inputs = document.querySelectorAll('#segRows .seg-row input[type="text"]:not(.emoji-in)');
+            if (inputs.length) inputs[inputs.length - 1].focus();
+        }
+
+        function removeSegment(i) {
+            const t = currentTimer();
+            if (t.segments.length <= 1) return;
+            t.segments.splice(i, 1);
+            run.extra.splice(i, 1);
+            if (run.started && run.index >= t.segments.length) run.index = t.segments.length - 1;
+            afterEdit(true);
+        }
+
+        function moveSegment(i, dir) {
+            const t = currentTimer();
+            const j = i + dir;
+            if (j < 0 || j >= t.segments.length) return;
+            [t.segments[i], t.segments[j]] = [t.segments[j], t.segments[i]];
+            [run.extra[i], run.extra[j]] = [run.extra[j] || 0, run.extra[i] || 0];
+            afterEdit(true);
+        }
+
+        function openColorPop(event, i) {
+            const pop = document.getElementById('colorPop');
+            const t = currentTimer();
+            colorPopTarget = i;
+            pop.innerHTML = COLORS.map(c => `<button style="background:${c.hex}" class="${t.segments[i].color === c.id ? 'sel' : ''}" title="${c.id}" onclick="pickColor('${c.id}')"></button>`).join('');
+            const r = event.currentTarget.getBoundingClientRect();
+            pop.style.left = Math.min(window.innerWidth - 190, r.left + window.scrollX) + 'px';
+            pop.style.top = (r.bottom + window.scrollY + 4) + 'px';
+            pop.classList.add('open');
+            event.stopPropagation();
+        }
+
+        function pickColor(id) {
+            const t = currentTimer();
+            if (colorPopTarget !== null && t.segments[colorPopTarget]) t.segments[colorPopTarget].color = id;
+            document.getElementById('colorPop').classList.remove('open');
+            colorPopTarget = null;
+            afterEdit(false);
+        }
+
+        document.addEventListener('click', () => document.getElementById('colorPop').classList.remove('open'));
+
+        function setTimerSetting(key, value) {
+            const t = currentTimer();
+            t.settings[key] = value;
+            settings.defaults[key] = value;   // new timers start with the last choices
+            afterEdit(key === 'advance');
+        }
+
+        function setHighContrast(on) {
+            settings.highContrast = on;
+            save();
+            renderAll();
+        }
+
+        // ---------- Backup ----------
+        function downloadBackup() {
+            const data = { app: 'w68-lesson-timer', version: 1, timers: timers, settings: settings };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'lesson-timers-backup.json';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+        }
+
+        function restoreBackup(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const data = JSON.parse(reader.result);
+                    if (!data || !Array.isArray(data.timers)) throw new Error('bad');
+                    if (!confirm('Replace your saved timers with the ' + data.timers.length + ' in this backup?')) return;
+                    if (data.settings && data.settings.defaults) settings.defaults = Object.assign({}, DEFAULT_TIMER_SETTINGS, data.settings.defaults);
+                    if (data.settings && typeof data.settings.highContrast === 'boolean') settings.highContrast = data.settings.highContrast;
+                    timers = data.timers.map(sanitizeTimer);
+                    if (timers.length === 0) timers.push(exampleTimer());
+                    currentId = timers[0].id;
+                    run = idleRun();
+                    cancelPending();
+                    save();
+                    renderAll();
+                } catch (e) {
+                    alert('That file is not a Lesson Timer backup.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ---------- Fullscreen & pop-out ----------
+        function toggleFullscreen() {
+            const on = !document.body.classList.contains('fullscreen');
+            document.body.classList.toggle('fullscreen', on);
+            document.getElementById('fsBtn').innerHTML = on ? '&#10005; Exit' : '&#9974; Fullscreen';
+            if (on && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else if (!on && document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+            render();
+        }
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && document.body.classList.contains('fullscreen')) {
+                document.body.classList.remove('fullscreen');
+                document.getElementById('fsBtn').innerHTML = '&#9974; Fullscreen';
+                render();
+            }
+        });
+
+        async function popOut() {
+            if (!('documentPictureInPicture' in window)) return;
+            if (pipWin) { pipWin.close(); return; }
+            try {
+                pipWin = await window.documentPictureInPicture.requestWindow({ width: 320, height: 360 });
+            } catch (e) { pipWin = null; return; }
+            const d = pipWin.document;
+            d.head.innerHTML = '<style>body{margin:0;background:#0f2044;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden}canvas{width:min(80vw,62vh);height:auto}.l{font-weight:700;font-size:1.1rem;margin-top:.4rem;max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.t{font-size:2.4rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}.t.o{color:#ff8a9a}</style>';
+            d.body.innerHTML = '<canvas id="c" width="400" height="400"></canvas><div class="l" id="l"></div><div class="t" id="t"></div>';
+            pipWin.addEventListener('pagehide', () => { pipWin = null; });
+            render();
+        }
+
+        function renderPip(t, v) {
+            const d = pipWin.document;
+            const c = d.getElementById('c');
+            if (!c) return;
+            drawPie(c, t, v, true);
+            const seg = t.segments[v.index];
+            d.getElementById('l').textContent = (seg.emoji ? seg.emoji + ' ' : '') + (seg.label || 'Segment ' + (v.index + 1));
+            const te = d.getElementById('t');
+            te.classList.toggle('o', v.status === 'ended' && t.settings.overtime);
+            te.textContent = v.status === 'ended' ? (t.settings.overtime ? formatOvertime(v.overtime) : '0:00') : formatTime(v.segmentLeft);
+        }
+
+        // ---------- Init ----------
+        load();
+        if (timers.length === 0) timers.push(exampleTimer());
+        if (!timers.some(t => t.id === currentId)) currentId = timers[0].id;
+        if (run.timerId !== currentId) run = idleRun();
+        if ('documentPictureInPicture' in window) document.getElementById('popBtn').style.display = '';
+        renderAll();
+        setInterval(render, 250);
+        // Re-plan sounds when the tab wakes up (laptop sleep stops the audio clock).
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) planSounds(); });
+        try {
+            getAudioCtx().addEventListener('statechange', planSounds);
+        } catch (e) {}
+
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+            if (e.key === ' ') { e.preventDefault(); toggleRun(); }
+            else if (e.key === 'n' || e.key === 'N') { advanceRun(); }
+            else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+            else if (e.key === 'Escape' && document.body.classList.contains('fullscreen')) { toggleFullscreen(); }
+        });
+    </script>
+</body>
+</html>
