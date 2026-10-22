@@ -96,7 +96,59 @@
         .car { left: -8vw; animation: drift linear infinite; }
         .car.back { scale: -1 1; animation-direction: reverse; }
         .field, .grid { left: 0; width: 100%; }
-        .light { width: 9px; height: 9px; border-radius: 50%; animation: blink 2.8s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
+        /* Laser show */
+        .lz-haze { position: absolute; inset: -20%; background: radial-gradient(ellipse at 50% 90%, rgba(120,90,255,0.22), transparent 60%); animation: float 40s ease-in-out infinite alternate; --dx: 40px; --dy: -20px; pointer-events: none; }
+        .lz-haze.h2 { background: radial-gradient(ellipse at 30% 70%, rgba(255,64,129,0.12), transparent 55%); animation-duration: 55s; --dx: -60px; }
+        .lz-crowd { animation: bob 3s ease-in-out infinite alternate; transform-origin: bottom; }
+        @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-0.6%); } }
+        .lz-truss { position: absolute; left: 6%; right: 6%; top: 6%; height: 4px; background: repeating-linear-gradient(90deg, #3a3560 0 14px, #1a1830 14px 18px); border-top: 1px solid #5a548a; }
+        .lz-lamp { position: absolute; top: calc(6% + 6px); width: 10px; height: 14px; border-radius: 3px; background: #2a2748; box-shadow: 0 6px 18px 4px var(--c); animation: blink 3s ease-in-out infinite; }
+        .lz-origin { position: absolute; left: 0; top: 0; rotate: var(--a); animation: lzSweep 18s ease-in-out infinite alternate; }
+        .lz-origin.rare { animation: lzSpin 30s linear infinite; }
+        @keyframes lzSweep { from { rotate: calc(var(--a) - 12deg); } to { rotate: calc(var(--a) + 12deg); } }
+        @keyframes lzSpin { from { rotate: var(--a); } to { rotate: calc(var(--a) + 360deg); } }
+        .lz-beam { position: absolute; left: 0; top: -1.5px; width: 170vmax; height: 3px; transform-origin: left center; background: linear-gradient(90deg, #fff, var(--c) 10%, transparent 90%); box-shadow: 0 0 10px var(--c), 0 0 28px var(--c); mix-blend-mode: screen; opacity: 0.9; }
+        /* Night skyline */
+        .sk-moon { position: absolute; left: 78%; top: 10%; width: 70px; height: 70px; border-radius: 50%; background: #f5f0d8; box-shadow: 0 0 60px rgba(245,240,216,0.5); animation: glow 9s ease-in-out infinite; --glow: rgba(245,240,216,0.6); }
+        .sk-glow { position: absolute; left: 0; right: 0; top: 48%; height: 30%; background: radial-gradient(ellipse at 50% 100%, rgba(255,150,80,0.22), transparent 70%); }
+        .light.sk-win { width: 3px; height: 3px; background: #ffe082; box-shadow: 0 0 4px #ffe082; }
+        .sk-car { position: absolute; top: 90.5%; left: -4%; width: 10px; height: 4px; border-radius: 2px; background: #fff; box-shadow: 0 0 8px 2px rgba(255,255,255,0.8); animation: drift linear infinite; }
+        .sk-car.back { top: 94%; background: #ff1744; box-shadow: 0 0 8px 2px rgba(255,23,68,0.8); animation-direction: reverse; }
+        .sk-tw { animation: blink 5s ease-in-out infinite; }
+        .sk-beacon { animation: blink 1.6s ease-in-out infinite; }
+        .sk-crown { animation: blink 4s ease-in-out infinite; }
+        /* Lantern festival */
+        .ln-lake { position: absolute; left: 0; right: 0; top: 72%; bottom: 0; background: repeating-linear-gradient(180deg, rgba(255,200,120,0.07) 0 2px, transparent 2px 9px), linear-gradient(#10243a, #061018); animation: shimmer 6s linear infinite; }
+        @keyframes shimmer { from { background-position: 0 0, 0 0; } to { background-position: 0 9px, 0 0; } }
+        .light.ln-village { width: 4px; height: 4px; background: #ffb74d; box-shadow: 0 0 6px #ffb74d; }
+        .animal.custom .ln { filter: drop-shadow(0 0 14px var(--c)) drop-shadow(0 0 30px var(--c)); animation: lanternFloat var(--dur, 18s) ease-in-out var(--delay, 0s) infinite alternate; }
+        @keyframes lanternFloat { from { transform: translate(-20px, 0) rotate(-2deg); } to { transform: translate(20px, -24px) rotate(2deg); } }
+        /* Solar system */
+        .so-sun { position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #fff6c2, #ffb300 55%, #ff6f00); box-shadow: 0 0 40px #ffb300, 0 0 120px rgba(255,140,0,0.5); animation: glow 7s ease-in-out infinite; --glow: #ffb300; }
+        .so-corona { position: absolute; inset: -18px; border-radius: 50%; background: radial-gradient(circle, rgba(255,200,80,0.35), transparent 70%); animation: pulse 5s ease-in-out infinite; }
+        .so-orbit { position: absolute; left: 0; top: 0; translate: -50% -50%; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); animation: spin linear infinite; }
+        .so-anchor { position: absolute; left: 100%; top: 50%; width: 0; height: 0; }
+        .so-planet { position: absolute; left: 0; top: 0; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0%, var(--c) 25%, color-mix(in srgb, var(--c) 40%, black) 100%); box-shadow: 0 0 10px rgba(255,255,255,0.15); }
+        .so-planet.gas { background: repeating-linear-gradient(170deg, var(--c) 0 4px, var(--c2) 4px 9px); }
+        .so-planet.gas::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.45), transparent 40%, rgba(0,0,0,0.6) 100%); }
+        .so-ring { position: absolute; left: 50%; top: 50%; width: 230%; height: 70%; translate: -50% -50%; border-radius: 50%; border: 5px solid rgba(255,235,200,0.75); border-top-color: rgba(255,235,200,0.35); rotate: -20deg; }
+        /* Stadium night */
+        .st-flood { position: absolute; top: 2%; width: 20px; height: 12px; background: #e8eaf6; box-shadow: 0 0 20px 6px rgba(255,255,230,0.9); border-radius: 2px; }
+        .st-seat { position: absolute; width: 2px; height: 2px; background: #3a4566; }
+        .st-screen { animation: blink 6s ease-in-out infinite; }
+        .st-section { position: absolute; inset: 0; }
+        .st-dot { position: absolute; width: 3px; height: 3px; border-radius: 50%; box-shadow: 0 0 5px 1px currentColor; animation: blink 3s ease-in-out infinite; }
+        .st-pyro { position: absolute; inset: 0; }
+        .st-flame { position: absolute; bottom: 0; width: 12%; height: 100%; border-radius: 50% 50% 20% 20%; background: linear-gradient(to top, #fff176, #ff9100 40%, rgba(255,61,0,0) 100%); filter: blur(1px); animation: flame 0.9s ease-in-out infinite alternate; transform-origin: bottom; }
+        @keyframes flame { from { transform: scaleY(0.7) scaleX(1); } to { transform: scaleY(1.15) scaleX(0.8); } }
+        /* Neon highway */
+        .sw-scan { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,0.12) 0 2px, transparent 2px 4px); pointer-events: none; }
+        .sw-glowline { position: absolute; left: 0; right: 0; top: 54%; height: 2px; background: #ff2d95; box-shadow: 0 0 12px #ff2d95, 0 0 30px #ff2d95; }
+        .sw-grid { animation: blink 8s ease-in-out infinite; }
+        .sw-pillar { position: absolute; inset: 0; background: linear-gradient(to top, #ff2d95, #ff80ab); box-shadow: 0 0 10px #ff2d95, 0 0 24px #ff2d95; border-radius: 2px; animation: blink 6s ease-in-out infinite; }
+        .sw-gate { position: absolute; inset: 0; border: 4px solid #00e5ff; border-bottom: none; border-radius: 40% 40% 0 0 / 100% 100% 0 0; box-shadow: 0 0 12px #00e5ff, inset 0 0 12px #00e5ff; }
+        .sw-palm { filter: drop-shadow(0 0 8px #00e5ff) drop-shadow(0 0 20px #00e5ff); }
+        .light { position: absolute; width: 9px; height: 9px; border-radius: 50%; animation: blink 2.8s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
 
         .animal {
             position: absolute;
@@ -111,6 +163,10 @@
         .animal.flee {
             animation: flee 1.1s ease-in both;
         }
+        .animal.custom { animation: fadeIn 1.2s ease-out both; filter: none; transform-origin: center bottom; }
+        .animal.custom.flee { animation: fadeOut 1s ease-in both; }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .full { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
         @keyframes appear {
             from { transform: scaleX(var(--face, 1)) scale(0); opacity: 0; }
             to   { transform: scaleX(var(--face, 1)) scale(1); opacity: 1; }
@@ -479,7 +535,7 @@
             <div class="card">
                 <div style="font-size:3rem;">&#129418; &#129427; &#129433;</div>
                 <h2>Quiet Landscapes</h2>
-                <p>Shy animals, performers, players and more come out while the classroom stays under the volume goal. Stay loud and they run away. Eighteen scenes to choose from: nature, seasons and holidays, and themes for older students. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
+                <p>Shy animals come out while the classroom stays under the volume goal, or lasers, lanterns, planets and city lights in the themes for older students. Stay loud and they run away. Eighteen scenes to choose from: nature, seasons and holidays, and themes for older students. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
                 <div class="start-scenes-label">Pick a scene</div>
                 <div class="start-scenes" id="startScenes"></div>
                 <button class="btn btn-primary btn-large" onclick="toggleListening()">&#127908; Start listening</button>
@@ -673,60 +729,273 @@
                 ambient: [['rainbow'], ['clover', 14], ['clouds', 4]],
                 animals: [{ emoji: '🐑', name: 'Sheep', tier: 'common' }, { emoji: '🐇', name: 'Hare', tier: 'uncommon' }, { emoji: '🧚', name: 'Fairy', tier: 'rare' }]
             },
-            concert: {
-                group: 'Older students', name: 'Rock concert', swatch: '#5b2a86', who: 'performers',
-                bg: 'linear-gradient(#070513 0%, #1d1040 40%, #2a1550 56%, #110a22 58%, #0b0716 100%)',
-                fog: 'rgba(60, 40, 90, 0.85)', zone: [0.62, 0.88], stars: 30,
-                ridges: [{ top: 46, h: 12, color: '#2a2342', shape: 2 }, { top: 54, h: 10, color: '#15101f', shape: 4 }],
-                deco: [['🔊', 6, 70, 4.5], ['🔊', 94, 70, 4.5], ['🥁', 50, 66, 3.6], ['🎹', 28, 66, 3], ['🎚️', 72, 66, 2.4], ['🎸', 38, 68, 2.2], ['🎤', 60, 66, 1.8]],
-                ambient: [['spotlights', 4], ['notes', 10], ['confetti', 30]],
-                animals: [{ emoji: '🕺', name: 'Fan', tier: 'common' }, { emoji: '🧑‍🎤', name: 'Singer', tier: 'uncommon' }, { emoji: '🎸', name: 'Guitar hero', tier: 'rare' }]
+            laser: {
+                group: 'Older students', name: 'Laser show', swatch: '#7c4dff', who: 'lasers', custom: 'laser', thumb: '<b style="color:#7c4dff">&#9587;</b><b style="color:#00e5ff">&#9587;</b><b style="color:#ff4081">&#9587;</b>',
+                bg: 'linear-gradient(#05030d 0%, #120a2a 55%, #1a0f3a 80%, #05030d 100%)',
+                fog: 'rgba(40, 30, 70, 0.9)', zone: [0.2, 0.6],
+                animals: [{ emoji: '✦', name: 'Laser beam', tier: 'common' }, { emoji: '✦✦', name: 'Laser fan', tier: 'uncommon' }, { emoji: '✳', name: 'Kaleidoscope', tier: 'rare' }]
             },
-            themepark: {
-                group: 'Older students', name: 'Theme park', swatch: '#f06292', who: 'visitors', sizeMul: 0.85,
-                bg: 'linear-gradient(#8fd3ff 0%, #c7ecff 44%, #7cc66b 52%, #5aa84f 100%)',
-                fog: 'rgba(200, 210, 230, 0.85)', zone: [0.62, 0.88], sun: { color: '#fff3b0', x: 12, y: 8, size: 70 },
-                ridges: [{ top: 40, h: 20, color: '#8fcf7f', shape: 1 }, { top: 48, h: 18, color: '#6fb860', shape: 0 }],
-                deco: [['🎡', 74, 60, 11], ['🎢', 22, 58, 10], ['🎠', 50, 80, 5], ['🎪', 90, 84, 6], ['🍿', 8, 92, 1.6], ['🎈', 34, 86, 1.6], ['🌳', 42, 60, 2.8], ['🪧', 60, 94, 1.6]],
-                ambient: [['clouds', 4], ['balloons', 8]],
-                animals: [{ emoji: '🤹', name: 'Juggler', tier: 'common' }, { emoji: '🧙', name: 'Magician', tier: 'uncommon' }, { emoji: '🦄', name: 'Unicorn', tier: 'rare' }]
+            skyline: {
+                group: 'Older students', name: 'Night skyline', swatch: '#1e3a8a', who: 'buildings', custom: 'skyline', thumb: '<b style="color:#ffe082">&#9646;&#9647;&#9646;</b>',
+                bg: 'linear-gradient(#05081a 0%, #0d1b4a 45%, #26457a 70%, #0b1226 72%, #070b18 100%)',
+                fog: 'rgba(60, 70, 100, 0.85)', zone: [0.6, 0.86],
+                animals: [{ emoji: '▮', name: 'Office block', tier: 'common' }, { emoji: '▮▮', name: 'Tower', tier: 'uncommon' }, { emoji: '▲', name: 'Landmark spire', tier: 'rare' }]
+            },
+            lanterns: {
+                group: 'Older students', name: 'Lantern festival', swatch: '#ff8f00', who: 'lanterns', custom: 'lanterns', thumb: '<b style="color:#ffb74d">&#9679;</b><b style="color:#ff8a65">&#9679;</b><b style="color:#ffd54f">&#9679;</b>',
+                bg: 'linear-gradient(#070b24 0%, #152052 40%, #1f3a5a 62%, #0a1a2a 70%, #061018 100%)',
+                fog: 'rgba(30, 40, 70, 0.85)', zone: [0.12, 0.58],
+                animals: [{ emoji: '●', name: 'Paper lantern', tier: 'common' }, { emoji: '●●', name: 'Coloured lantern', tier: 'uncommon' }, { emoji: '⬤', name: 'Golden lantern', tier: 'rare' }]
+            },
+            solar: {
+                group: 'Older students', name: 'Solar system', swatch: '#ff6f00', who: 'planets', custom: 'solar', thumb: '<b style="color:#ffb300">&#9788;</b><b style="color:#90caf9">&#9679;</b>',
+                bg: 'radial-gradient(circle at 50% 50%, #1b1340 0%, #0a0820 45%, #040312 100%)',
+                fog: 'rgba(60, 60, 90, 0.8)', zone: [0.1, 0.9],
+                animals: [{ emoji: '●', name: 'Rocky planet', tier: 'common' }, { emoji: '●●', name: 'Gas giant', tier: 'uncommon' }, { emoji: '◎', name: 'Ringed planet', tier: 'rare' }]
             },
             stadium: {
-                group: 'Older students', name: 'Stadium', swatch: '#2e7d32', who: 'players',
-                bg: 'linear-gradient(#9fd0ff 0%, #d7ecff 26%, #7a7f8a 27%, #a7adb8 48%, #3f9f3f 52%, #2f7f2f 100%)',
-                fog: 'rgba(200, 205, 215, 0.85)', zone: [0.6, 0.88],
-                ridges: [{ top: 30, h: 10, color: '#d8dde6', shape: 4 }, { top: 37, h: 10, color: '#b6bcc8', shape: 4 }, { top: 44, h: 8, color: '#8f96a3', shape: 4 }],
-                deco: [['🥅', 4, 82, 5.5], ['🥅', 96, 82, 5.5], ['🚩', 50, 54, 2], ['📣', 30, 54, 1.6], ['🎥', 70, 54, 1.6], ['🚩', 10, 56, 1.6], ['🚩', 90, 56, 1.6]],
-                ambient: [['fieldlines'], ['confetti', 16]],
-                animals: [{ emoji: '🏃', name: 'Sprinter', tier: 'common' }, { emoji: '⛹️', name: 'Baller', tier: 'uncommon' }, { emoji: '🏆', name: 'Champion', tier: 'rare' }]
+                group: 'Older students', name: 'Stadium night', swatch: '#00897b', who: 'crowd sections', custom: 'stadium', thumb: '<b style="color:#80deea">&#9641;&#9641;&#9641;</b>',
+                bg: 'linear-gradient(#050a16 0%, #0b1a33 50%, #0f2a1a 62%, #0b3d1f 100%)',
+                fog: 'rgba(80, 90, 110, 0.85)', zone: [0.3, 0.5],
+                animals: [{ emoji: '▣', name: 'Phone lights', tier: 'common' }, { emoji: '▣▣', name: 'Colour wave', tier: 'uncommon' }, { emoji: '▲', name: 'Pyro', tier: 'rare' }]
             },
-            city: {
-                group: 'Older students', name: 'Skyline', swatch: '#37474f', who: 'buildings', sizeMul: 1.7,
-                bg: 'linear-gradient(#17254f 0%, #55478a 32%, #e08a5a 50%, #2e3440 54%, #1f2630 100%)',
-                fog: 'rgba(90, 95, 110, 0.85)', zone: [0.58, 0.86], stars: 30,
-                ridges: [{ top: 34, h: 20, color: '#1b2142', shape: 3 }, { top: 44, h: 12, color: '#12172e', shape: 3 }],
-                deco: [['🏗️', 10, 58, 5.5], ['🚧', 40, 84, 1.6], ['🌳', 72, 88, 2.6], ['🌳', 24, 94, 2.8], ['🚦', 58, 86, 1.8], ['🏛️', 88, 60, 3.2], ['🛣️', 50, 100, 1.4]],
-                ambient: [['glow', { x0: 2, x1: 98, y0: 38, y1: 54, n: 45 }], ['traffic', 5], ['clouds', 2, 'dark']],
-                animals: [{ emoji: '🏢', name: 'Office tower', tier: 'common' }, { emoji: '🏬', name: 'Shopping centre', tier: 'uncommon' }, { emoji: '🏙️', name: 'Skyscraper', tier: 'rare' }]
-            },
-            quest: {
-                group: 'Older students', name: 'Creature quest', swatch: '#7e57c2', who: 'creatures',
-                bg: 'linear-gradient(#1e1550 0%, #6b4fb3 40%, #3e8a5a 52%, #2b6b42 100%)',
-                fog: 'rgba(110, 90, 160, 0.85)', zone: [0.6, 0.88], stars: 50, moon: { x: 80, y: 8, size: 60 },
-                ridges: [{ top: 34, h: 22, color: '#4a3a8a', shape: 3 }, { top: 46, h: 16, color: '#2f6f4a', shape: 0 }],
-                deco: [['🏯', 14, 60, 5.5], ['⛩️', 82, 62, 3.6], ['🌲', 40, 60, 2.8], ['🌲', 62, 58, 2.6], ['🔮', 50, 92, 1.6], ['🍄', 30, 94, 1.3], ['🪄', 70, 96, 1.4], ['🗿', 90, 92, 2.4], ['🌿', 8, 92, 1.8]],
-                ambient: [['sparkles', 18], ['mist'], ['shooting', 2]],
-                animals: [{ emoji: '👾', name: 'Pixel beast', tier: 'common' }, { emoji: '🐲', name: 'Dragon', tier: 'uncommon' }, { emoji: '🧞', name: 'Genie', tier: 'rare' }]
-            },
-            arcade: {
-                group: 'Older students', name: 'Retro arcade', swatch: '#ff4081', who: 'characters',
-                bg: 'linear-gradient(#07021a 0%, #2a0a5a 52%, #0b0220 100%)',
-                fog: 'rgba(70, 30, 110, 0.85)', zone: [0.56, 0.86], stars: 40,
-                deco: [['🕹️', 8, 84, 3.6], ['🎮', 92, 86, 3.6], ['👑', 50, 28, 2.2], ['💾', 30, 94, 1.6], ['📼', 70, 96, 1.6], ['🪙', 20, 70, 1.2], ['🪙', 80, 72, 1.2]],
-                ambient: [['grid'], ['pixels', 24], ['shooting', 2]],
-                animals: [{ emoji: '👾', name: 'Invader', tier: 'common' }, { emoji: '🤖', name: 'Robot', tier: 'uncommon' }, { emoji: '🛸', name: 'UFO', tier: 'rare' }]
+            synthwave: {
+                group: 'Older students', name: 'Neon highway', swatch: '#ff2d95', who: 'neon lights', custom: 'synthwave', thumb: '<b style="color:#ff2d95">&#9650;</b><b style="color:#00e5ff">&#9647;</b>',
+                bg: 'linear-gradient(#0a0220 0%, #2b0a5a 45%, #ff2d95 52%, #0a0220 54%, #120433 100%)',
+                fog: 'rgba(70, 30, 110, 0.85)', zone: [0.5, 0.9],
+                animals: [{ emoji: '▮', name: 'Light pillar', tier: 'common' }, { emoji: '∩', name: 'Neon gate', tier: 'uncommon' }, { emoji: '❦', name: 'Neon palm', tier: 'rare' }]
             }
         };
+        // Vector-drawn scenes for older students. No emoji anywhere: everything is SVG and CSS.
+        function prng(seed) { let x = Math.floor(seed * 2147483647) || 1; return () => (x = (x * 48271) % 2147483647) / 2147483647; }
+        function starsHtml(n, maxTop) {
+            let h = '';
+            for (let i = 0; i < n; i++) h += `<div class="star" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * maxTop).toFixed(1)}%;animation-delay:${(Math.random() * 5).toFixed(1)}s;opacity:${(0.3 + Math.random() * 0.6).toFixed(2)}"></div>`;
+            return h;
+        }
+        function jaggedPath(seed, baseY, minH, maxH, steps) {
+            const r = prng(seed);
+            let d = `M0,100 L0,${baseY}`;
+            for (let i = 0; i <= steps; i++) {
+                const x = (i / steps) * 100;
+                d += ` L${x.toFixed(1)},${(baseY - minH - r() * (maxH - minH)).toFixed(1)}`;
+                if (i < steps) d += ` L${(x + 100 / steps * 0.5).toFixed(1)},${(baseY - minH * 0.4 - r() * minH).toFixed(1)}`;
+            }
+            return d + ' L100,100 Z';
+        }
+        function cityPath(seed, baseY, minH, maxH) {
+            const r = prng(seed);
+            let d = `M0,100 L0,${baseY}`, x = 0;
+            while (x < 100) {
+                const w = 2 + r() * 6, hgt = minH + r() * (maxH - minH);
+                d += ` L${x.toFixed(1)},${(baseY - hgt).toFixed(1)} L${(x + w).toFixed(1)},${(baseY - hgt).toFixed(1)}`;
+                x += w;
+            }
+            return d + ` L100,${baseY} L100,100 Z`;
+        }
+
+        const CUSTOM = {
+            laser: {
+                build(el, s) {
+                    let h = starsHtml(40, 70);
+                    h += `<div class="lz-haze"></div><div class="lz-haze h2"></div>`;
+                    h += `<svg class="full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs><linearGradient id="lzf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2460"/><stop offset="1" stop-color="#07060f"/></linearGradient></defs>
+                        <polygon points="14,84 86,84 100,100 0,100" fill="url(#lzf)"/>
+                        <rect x="14" y="83.4" width="72" height="0.7" fill="#8c7bff" opacity="0.8"/>
+                        <path d="${jaggedPath(0.31, 100, 6, 14, 60)}" fill="#05040b" class="lz-crowd"/>
+                    </svg>`;
+                    h += `<div class="lz-truss"></div>`;
+                    for (let i = 0; i < 9; i++) h += `<div class="lz-lamp" style="left:${(10 + i * 10)}%;--c:${['#ff4081', '#00e5ff', '#7c4dff', '#ffea00'][i % 4]};animation-delay:${(i * 0.7).toFixed(1)}s"></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const angle = -(15 + (a.x - 6) / 84 * 150);
+                    const color = `hsl(${Math.round(a.seed * 360)} 100% 62%)`;
+                    const spread = def.tier === 'common' ? [0] : def.tier === 'uncommon' ? [-9, 0, 9] : [0, 45, 90, 135, 180, 225, 270, 315];
+                    const beams = spread.map(d => `<div class="lz-beam" style="transform:rotate(${d}deg)"></div>`).join('');
+                    return { html: `<div class="lz-origin ${def.tier}" style="--a:${angle}deg;--c:${color};animation-delay:${(-a.seed * 20).toFixed(1)}s">${beams}</div>`, style: 'left:50%;top:92%;width:0;height:0' };
+                }
+            },
+            skyline: {
+                build(el, s) {
+                    let h = starsHtml(70, 55);
+                    h += `<div class="sk-moon"></div><div class="sk-glow"></div>`;
+                    h += `<svg class="full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="${cityPath(0.42, 72, 8, 30)}" fill="#0c1636"/>
+                        <path d="${cityPath(0.77, 76, 6, 22)}" fill="#070d24"/>
+                        <rect x="0" y="86" width="100" height="14" fill="#101522"/>
+                        <rect x="0" y="86" width="100" height="0.5" fill="#2a3350"/>
+                        <rect x="0" y="92.5" width="100" height="0.4" fill="#d9c56a" opacity="0.6" stroke-dasharray="3 2"/>
+                    </svg>`;
+                    for (let i = 0; i < 24; i++) h += `<div class="light sk-win" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(50 + Math.random() * 22).toFixed(1)}%;animation-duration:${(4 + Math.random() * 6).toFixed(1)}s;animation-delay:${(-Math.random() * 6).toFixed(1)}s"></div>`;
+                    for (let i = 0; i < 6; i++) h += `<div class="sk-car ${i % 2 ? 'back' : ''}" style="animation-duration:${(26 + Math.random() * 20).toFixed(0)}s;animation-delay:${(-Math.random() * 40).toFixed(0)}s"></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const r = prng(a.seed);
+                    const tier = def.tier;
+                    const cols = tier === 'common' ? 4 + Math.floor(r() * 4) : tier === 'uncommon' ? 4 + Math.floor(r() * 2) : 5;
+                    const rows = tier === 'common' ? 5 + Math.floor(r() * 6) : tier === 'uncommon' ? 14 + Math.floor(r() * 8) : 26;
+                    const cw = 10, ch = 9, W = cols * cw + 6, H = rows * ch + 6;
+                    const body = ['#1b2238', '#202a44', '#182033', '#242b3f'][Math.floor(r() * 4)];
+                    let wins = '';
+                    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+                        const lit = r() < 0.62;
+                        const tw = lit && r() < 0.15;
+                        wins += `<rect x="${3 + x * cw + 2}" y="${3 + y * ch + 2}" width="${cw - 4}" height="${ch - 4}" fill="${lit ? (r() < 0.8 ? '#ffe082' : '#b3e5fc') : '#0b1020'}" ${tw ? 'class="sk-tw"' : ''}/>`;
+                    }
+                    let top = '';
+                    if (tier === 'uncommon') top = `<rect x="${W / 2 - 1}" y="-18" width="2" height="18" fill="#9aa4c0"/><circle cx="${W / 2}" cy="-18" r="1.8" fill="#ff1744" class="sk-beacon"/>`;
+                    if (tier === 'rare') top = `<polygon points="${W / 2 - 12},0 ${W / 2 + 12},0 ${W / 2},-40" fill="${body}"/><rect x="${W / 2 - 0.8}" y="-62" width="1.6" height="22" fill="#9aa4c0"/><circle cx="${W / 2}" cy="-62" r="2.2" fill="#ff1744" class="sk-beacon"/><polygon points="${W / 2 - 10},0 ${W / 2 + 10},0 ${W / 2},-34" fill="#ffd54f" opacity="0.35" class="sk-crown"/>`;
+                    const scale = (0.75 + ((a.y - 60) / 26) * 0.5).toFixed(2);
+                    const html = `<svg class="sk-bld" viewBox="${-14} ${-66} ${W + 28} ${H + 66}" width="${((W + 28) * scale).toFixed(0)}" height="${((H + 66) * scale).toFixed(0)}"><g>${top}<rect x="0" y="0" width="${W}" height="${H}" fill="${body}" stroke="#2f3a58" stroke-width="1"/>${wins}</g></svg>`;
+                    return { html, style: `left:${a.x}%;top:88.2%;translate:-50% -100%;z-index:${Math.round(a.y)}` };
+                }
+            },
+            lanterns: {
+                build(el, s) {
+                    let h = starsHtml(80, 60);
+                    h += `<svg class="full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="${jaggedPath(0.12, 70, 10, 28, 14)}" fill="#0f1a3a"/>
+                        <path d="${jaggedPath(0.58, 72, 4, 16, 18)}" fill="#0a1228"/>
+                        <rect x="0" y="72" width="100" height="28" fill="#0b1a2c"/>
+                    </svg>`;
+                    h += `<div class="ln-lake"></div>`;
+                    for (let i = 0; i < 18; i++) h += `<div class="light ln-village" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(70.2 + Math.random() * 1.6).toFixed(1)}%;animation-duration:${(3 + Math.random() * 5).toFixed(1)}s"></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const tier = def.tier;
+                    const hue = tier === 'common' ? 28 + Math.round(a.seed * 14) : tier === 'uncommon' ? Math.round(a.seed * 360) : 42;
+                    const size = tier === 'rare' ? 86 : tier === 'uncommon' ? 58 : 44;
+                    const c = `hsl(${hue} 100% ${tier === 'rare' ? 60 : 66}%)`;
+                    const html = `<svg class="ln" viewBox="0 0 60 90" width="${size}" height="${size * 1.5}" style="--c:${c}">
+                        <defs><radialGradient id="g${Math.round(a.seed * 1e6)}" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="#fff8e1"/><stop offset="0.45" stop-color="${c}"/><stop offset="1" stop-color="hsl(${hue} 90% 38%)"/></radialGradient></defs>
+                        <rect x="24" y="2" width="12" height="6" rx="2" fill="#5d4037"/>
+                        <path d="M10,16 Q30,2 50,16 L54,62 Q30,76 6,62 Z" fill="url(#g${Math.round(a.seed * 1e6)})" stroke="hsl(${hue} 80% 45%)" stroke-width="1.5"/>
+                        <path d="M14,30 Q30,24 46,30 M12,44 Q30,38 48,44 M14,56 Q30,50 46,56" fill="none" stroke="hsl(${hue} 80% 40%)" stroke-width="1" opacity="0.6"/>
+                        <rect x="20" y="64" width="20" height="5" rx="2" fill="#5d4037"/>
+                        ${tier === 'rare' ? '<path d="M30,69 L30,86 M26,72 L26,84 M34,72 L34,84" stroke="#ffd54f" stroke-width="1.5"/>' : '<line x1="30" y1="69" x2="30" y2="80" stroke="#8d6e63" stroke-width="1.5"/>'}
+                    </svg>`;
+                    return { html, style: `left:${a.x}%;top:${a.y}%;--dur:${(14 + a.seed * 10).toFixed(1)}s;--delay:${(-a.seed * 14).toFixed(1)}s` };
+                }
+            },
+            solar: {
+                build(el, s) {
+                    let h = starsHtml(140, 100);
+                    h += ambientHtml('nebula', 3, null, s);
+                    h += `<div class="so-sun"><div class="so-corona"></div></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const st = document.getElementById('stage');
+                    const R = Math.round((0.11 + (a.x / 100) * 0.36) * st.clientHeight);
+                    const dur = Math.round(60 + (R / st.clientHeight) * 220);
+                    const hue = Math.round(a.seed * 360);
+                    const tier = def.tier;
+                    const size = tier === 'common' ? 14 + Math.round(a.seed * 10) : tier === 'uncommon' ? 36 + Math.round(a.seed * 14) : 34;
+                    let planet;
+                    if (tier === 'uncommon') {
+                        planet = `<div class="so-planet gas" style="width:${size}px;height:${size}px;--c:hsl(${hue} 60% 55%);--c2:hsl(${(hue + 30) % 360} 55% 42%)"></div>`;
+                    } else if (tier === 'rare') {
+                        planet = `<div class="so-planet ringed" style="width:${size}px;height:${size}px;--c:hsl(${hue} 65% 60%)"><div class="so-ring"></div></div>`;
+                    } else {
+                        planet = `<div class="so-planet" style="width:${size}px;height:${size}px;--c:hsl(${hue} 55% 58%)"></div>`;
+                    }
+                    const html = `<div class="so-orbit" style="width:${R * 2}px;height:${R * 2}px;animation-duration:${dur}s;animation-delay:${(-a.seed * dur).toFixed(0)}s"><div class="so-anchor">${planet}</div></div>`;
+                    return { html, style: 'left:50%;top:50%;width:0;height:0;overflow:visible' };
+                }
+            },
+            stadium: {
+                build(el, s) {
+                    let h = starsHtml(50, 30);
+                    h += `<svg class="full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="stStand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3550"/><stop offset="1" stop-color="#151c30"/></linearGradient>
+                            <linearGradient id="stPitch" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f7a3a"/><stop offset="1" stop-color="#14552a"/></linearGradient>
+                        </defs>
+                        <path d="M0,34 Q50,22 100,34 L100,62 Q50,54 0,62 Z" fill="url(#stStand)"/>
+                        ${[38, 42, 46, 50, 54, 58].map(y => `<path d="M0,${y} Q50,${y - 10} 100,${y}" fill="none" stroke="#0e1426" stroke-width="0.35"/>`).join('')}
+                        <path d="M0,34 Q50,22 100,34" fill="none" stroke="#5c6b94" stroke-width="0.6"/>
+                        <rect x="36" y="14" width="28" height="12" rx="1" fill="#0a0e1c" stroke="#44507a" stroke-width="0.5"/>
+                        <rect x="37.5" y="15.5" width="25" height="9" fill="#1a2a5a" class="st-screen"/>
+                        <polygon points="0,62 100,62 100,100 0,100" fill="url(#stPitch)"/>
+                        <g fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.5">
+                            <polygon points="8,66 92,66 100,98 0,98"/><line x1="50" y1="66" x2="50" y2="98"/>
+                            <ellipse cx="50" cy="82" rx="9" ry="7"/>
+                            <polygon points="8,72 24,72 20,92 0,92"/><polygon points="92,72 76,72 80,92 100,92"/>
+                        </g>
+                        <polygon points="0,0 7,0 30,62 20,62" fill="rgba(255,255,230,0.09)"/>
+                        <polygon points="100,0 93,0 70,62 80,62" fill="rgba(255,255,230,0.09)"/>
+                        <polygon points="0,0 2,0 50,62 46,62" fill="rgba(255,255,230,0.05)"/>
+                        <polygon points="100,0 98,0 50,62 54,62" fill="rgba(255,255,230,0.05)"/>
+                    </svg>`;
+                    h += `<div class="st-flood" style="left:3%"></div><div class="st-flood" style="left:93%"></div>`;
+                    for (let i = 0; i < 220; i++) h += `<div class="st-seat" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(32 + Math.random() * 26).toFixed(1)}%"></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const col = Math.min(5, Math.floor((a.x - 6) / 84 * 6));
+                    const row = a.y < 40 ? 0 : 1;
+                    const left = 8 + col * 14, top = row === 0 ? 33 : 45;
+                    const tier = def.tier;
+                    if (tier === 'rare') {
+                        let flames = '';
+                        for (let i = 0; i < 7; i++) flames += `<div class="st-flame" style="left:${i * 15}%;animation-delay:${(-Math.random() * 2).toFixed(2)}s"></div>`;
+                        return { html: `<div class="st-pyro">${flames}</div>`, style: `left:${8 + col * 14}%;top:62%;width:12%;height:10%` };
+                    }
+                    const hue = Math.round(a.seed * 360);
+                    let dots = '';
+                    for (let i = 0; i < 70; i++) {
+                        const c = tier === 'common' ? '#e3f2fd' : `hsl(${(hue + i * 4) % 360} 100% 70%)`;
+                        dots += `<div class="st-dot" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 100).toFixed(1)}%;background:${c};color:${c};animation-delay:${(-Math.random() * 3).toFixed(2)}s"></div>`;
+                    }
+                    return { html: `<div class="st-section ${tier}">${dots}</div>`, style: `left:${left}%;top:${top}%;width:12%;height:9%` };
+                }
+            },
+            synthwave: {
+                build(el, s) {
+                    let h = starsHtml(60, 45);
+                    h += `<svg class="full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="swSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd54f"/><stop offset="0.5" stop-color="#ff6e40"/><stop offset="1" stop-color="#ff2d95"/></linearGradient>
+                            <mask id="swMask"><rect x="0" y="0" width="100" height="100" fill="#fff"/>${[36, 40, 43.5, 46.5, 49, 51].map((y, i) => `<rect x="0" y="${y}" width="100" height="${0.6 + i * 0.35}" fill="#000"/>`).join('')}</mask>
+                        </defs>
+                        <circle cx="50" cy="38" r="17" fill="url(#swSun)" mask="url(#swMask)"/>
+                        <path d="${jaggedPath(0.21, 54, 4, 20, 16)}" fill="#160838"/>
+                        <path d="${jaggedPath(0.21, 54, 4, 20, 16)}" fill="none" stroke="#ff2d95" stroke-width="0.35" opacity="0.9"/>
+                        <rect x="0" y="54" width="100" height="46" fill="#0d0526"/>
+                        <g stroke="#ff2d95" stroke-width="0.25" opacity="0.8" class="sw-grid">
+                            ${[-60, -40, -20, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160].map(x => `<line x1="50" y1="54" x2="${x}" y2="100"/>`).join('')}
+                            ${[55, 57, 60, 64, 69, 75, 82, 90, 99].map(y => `<line x1="0" y1="${y}" x2="100" y2="${y}"/>`).join('')}
+                        </g>
+                        <polygon points="44,54 56,54 90,100 10,100" fill="#1a0a40" opacity="0.9"/>
+                        <polygon points="49.6,54 50.4,54 51.5,100 48.5,100" fill="#ffd54f" opacity="0.5"/>
+                    </svg>`;
+                    h += `<div class="sw-scan"></div><div class="sw-glowline"></div>`;
+                    el.innerHTML = h;
+                },
+                arrival(a, def) {
+                    const d = a.seed;                               // 0 far .. 1 near
+                    const side = a.x < 50 ? -1 : 1;
+                    const y = 56 + d * 40;
+                    const tier = def.tier;
+                    if (tier === 'uncommon') {
+                        const w = 8 + d * 70, hgt = 4 + d * 26;
+                        return { html: `<div class="sw-gate"></div>`, style: `left:50%;top:${y}%;width:${w}%;height:${hgt}%;translate:-50% -100%;z-index:${Math.round(y)}` };
+                    }
+                    const x = 50 + side * (4 + d * 44);
+                    if (tier === 'rare') {
+                        const sz = 30 + d * 140;
+                        return { html: `<svg class="sw-palm" viewBox="0 0 100 160" width="${sz}" height="${sz * 1.6}"><path d="M50,160 Q52,100 48,60" stroke="#00e5ff" stroke-width="4" fill="none"/>${[-70, -40, -15, 15, 40, 70].map(ang => `<path d="M48,60 q${Math.sin(ang * Math.PI / 180) * 45},${-Math.abs(Math.cos(ang * Math.PI / 180)) * 30 - 10} ${Math.sin(ang * Math.PI / 180) * 55},${Math.cos(ang * Math.PI / 180) * -10 + 20}" stroke="#00e5ff" stroke-width="3" fill="none" stroke-linecap="round"/>`).join('')}</svg>`, style: `left:${x}%;top:${y}%;translate:-50% -100%;z-index:${Math.round(y)}` };
+                    }
+                    const hgt = 5 + d * 30;
+                    return { html: `<div class="sw-pillar"></div>`, style: `left:${x}%;top:${y}%;width:${(0.4 + d * 1).toFixed(2)}%;height:${hgt}%;translate:-50% -100%;z-index:${Math.round(y)}` };
+                }
+            }
+        };
+
         const TIER_WEIGHTS = { common: 60, uncommon: 30, rare: 10 };
 
         // Noise-bucket constants (slow in, fast out)
@@ -787,7 +1056,7 @@
                     Object.keys(d.present).forEach(k => {
                         if (!SCENES[k] || !Array.isArray(d.present[k])) return;
                         settings.present[k] = d.present[k].filter(a => a && SCENES[k].animals.some(x => x.name === a.slug))
-                            .map(a => ({ slug: a.slug, x: +a.x || 50, y: +a.y || 70, flip: !!a.flip }));
+                            .map(a => ({ slug: a.slug, x: +a.x || 50, y: +a.y || 70, flip: !!a.flip, seed: isFinite(a.seed) ? +a.seed : Math.random() }));
                     });
                 }
             } catch (e) {}
@@ -931,6 +1200,13 @@
             const s = sceneDef();
             const el = document.getElementById('scene');
             el.style.background = s.bg;
+            if (s.custom) {
+                CUSTOM[s.custom].build(el, s);
+                document.getElementById('fog').style.background = s.fog;
+                presentList().forEach(a => placeAnimal(a, false));
+                updateCount();
+                return;
+            }
             let html = '';
             if (s.sun) html += `<div class="sun" style="left:${s.sun.x}%;top:${s.sun.y}%;width:${s.sun.size}px;height:${s.sun.size}px;background:${s.sun.color};--glow:${s.sun.color}"></div>`;
             if (s.moon) html += `<div class="sun moon" style="left:${s.moon.x}%;top:${s.moon.y}%;width:${s.moon.size}px;height:${s.moon.size}px;--glow:#fff3c4"></div>`;
@@ -975,6 +1251,17 @@
             const def = animalDef(a.slug);
             if (!def) return;
             const el = document.createElement('div');
+            if (sceneDef().custom) {
+                if (a.seed === undefined) a.seed = Math.random();
+                const out = CUSTOM[sceneDef().custom].arrival(a, def);
+                el.className = 'animal custom' + (paused ? ' paused' : '');
+                el.dataset.slug = a.slug;
+                el.title = def.name;
+                el.style.cssText = out.style;
+                el.innerHTML = out.html;
+                document.getElementById('scene').appendChild(el);
+                return;
+            }
             el.className = 'animal' + (a.flip ? ' flip' : '') + (paused ? ' paused' : '');
             el.dataset.slug = a.slug;
             const depth = (a.y - sceneDef().zone[0] * 100) / ((sceneDef().zone[1] - sceneDef().zone[0]) * 100); // 0 far .. 1 near
@@ -1012,7 +1299,8 @@
                 slug: def.name,
                 x: Math.round(6 + Math.random() * 84),
                 y: Math.round((z[0] + Math.random() * (z[1] - z[0])) * 100),
-                flip: Math.random() < 0.5
+                flip: Math.random() < 0.5,
+                seed: Math.random()
             };
             presentList().push(a);
             placeAnimal(a, true);
@@ -1038,10 +1326,10 @@
             updateCount();
         }
 
+        function singular(w) { return w.endsWith('s') ? w.slice(0, -1) : w; }
         function whoWord(n) {
             const w = sceneDef().who || 'animals';
-            if (n !== 1) return w;
-            return { animals: 'animal', performers: 'performer', visitors: 'visitor', players: 'player', buildings: 'building', creatures: 'creature', characters: 'character' }[w] || w;
+            return n === 1 ? singular(w) : w;
         }
 
         function updateCount() {
@@ -1069,7 +1357,7 @@
                 const s = SCENES[k];
                 const n = (settings.present[k] || []).length;
                 const w = s.who || 'animals';
-                const word = n === 1 ? ({ animals: 'animal', performers: 'performer', visitors: 'visitor', players: 'player', buildings: 'building', creatures: 'creature', characters: 'character' }[w] || w) : w;
+                const word = n === 1 ? singular(w) : w;
                 return `<button class="scene-btn ${k === settings.scene ? 'active' : ''}" onclick="setScene('${k}')">
                     <span class="sw" style="background:${s.swatch}"></span>
                     <span><div class="nm">${s.name}</div><div class="cnt">${n} ${word}</div></span>
@@ -1089,7 +1377,7 @@
             if (!el) return;
             el.innerHTML = Object.keys(SCENES).map(k => {
                 const s = SCENES[k];
-                const sample = s.animals.map(a => a.emoji).join('');
+                const sample = s.thumb || s.animals.map(a => a.emoji).join('');
                 return `<button class="start-scene ${k === settings.scene ? 'active' : ''}" onclick="setScene('${k}')" title="${s.name}">
                     <span class="thumb" style="background:${s.bg}">${sample}</span><span>${s.name}</span></button>`;
             }).join('');
@@ -1100,7 +1388,11 @@
             const sc = Math.max(0.7, Math.min(1.7, st.clientHeight / 720));
             st.style.setProperty('--scale', sc.toFixed(3));
         }
-        window.addEventListener('resize', updateScale);
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            updateScale();
+            if (sceneDef().custom) { clearTimeout(resizeTimer); resizeTimer = setTimeout(buildScene, 250); }
+        });
 
         function setScene(key) {
             if (!SCENES[key]) return;
