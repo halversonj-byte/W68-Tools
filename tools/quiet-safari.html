@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Safari - W68 Teacher Tools</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root { --tool-color: #2e7d4f; }
+        html, body { height: 100%; }
+        body { display: flex; flex-direction: column; overflow: hidden; }
+        .tool-header { flex: none; }
+        body.fullscreen .tool-header { display: none; }
+
+        /* ---- Scene ---- */
+        .stage {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+            background: #cfd8dc;
+            user-select: none;
+        }
+        .scene {
+            position: absolute;
+            inset: 0;
+            transition: background 0.6s;
+        }
+        .scene .layer { position: absolute; left: 0; right: 0; pointer-events: none; }
+        .deco {
+            position: absolute;
+            font-size: 3rem;
+            pointer-events: none;
+            line-height: 1;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+        }
+        .sun { position: absolute; border-radius: 50%; pointer-events: none; }
+        .star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.8; animation: twinkle 3s ease-in-out infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .animal {
+            position: absolute;
+            line-height: 1;
+            transform-origin: center bottom;
+            animation: appear 0.7s cubic-bezier(.2,1.4,.4,1) both, wander var(--dur, 10s) ease-in-out var(--delay, 0s) infinite alternate;
+            filter: drop-shadow(0 3px 3px rgba(0,0,0,0.25));
+            will-change: transform;
+        }
+        .animal.flip { --face: -1; }
+        .animal.flee {
+            animation: flee 1.1s ease-in both;
+        }
+        @keyframes appear {
+            from { transform: scaleX(var(--face, 1)) scale(0); opacity: 0; }
+            to   { transform: scaleX(var(--face, 1)) scale(1); opacity: 1; }
+        }
+        @keyframes wander {
+            from { translate: calc(var(--wx, 40px) * -1) 0; }
+            to   { translate: var(--wx, 40px) 0; }
+        }
+        @keyframes flee {
+            from { transform: scaleX(var(--face, 1)) scale(1); opacity: 1; translate: 0 0; }
+            to   { transform: scaleX(var(--face, 1)) scale(0.6); opacity: 0; translate: calc(var(--face, 1) * 120vw) -10vh; }
+        }
+        .animal.paused { animation-play-state: paused; }
+
+        .fog {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 1.2s;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fog.on { opacity: 1; }
+        .fog .shh {
+            font-size: clamp(2.5rem, 9vw, 7rem);
+            font-weight: 800;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+            letter-spacing: 0.05em;
+        }
+
+        /* ---- Overlays on the scene ---- */
+        .hud {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            z-index: 5;
+        }
+        .pill {
+            background: rgba(15, 32, 68, 0.75);
+            color: #fff;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 1rem;
+            backdrop-filter: blur(4px);
+        }
+        .pill.muted { opacity: 0.8; font-weight: 600; }
+
+        .meter-wrap {
+            position: absolute;
+            top: 0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(560px, 60vw);
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .meter-wrap.visible { opacity: 1; pointer-events: auto; }
+        .meter {
+            position: relative;
+            height: 26px;
+            border-radius: 13px;
+            background: rgba(15, 32, 68, 0.55);
+            overflow: visible;
+            cursor: ew-resize;
+            backdrop-filter: blur(4px);
+            touch-action: none;
+        }
+        .meter .fill {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 0%;
+            border-radius: 13px;
+            background: linear-gradient(90deg, #2ecc71, #f1c40f 60%, #e74c3c);
+            transition: width 0.12s linear;
+        }
+        .meter .goal {
+            position: absolute;
+            top: -6px; bottom: -6px;
+            width: 4px;
+            margin-left: -2px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 0 2px rgba(15,32,68,0.6);
+        }
+        .meter .goal::after {
+            content: 'goal';
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+        .meter-presets {
+            display: flex;
+            gap: 0.35rem;
+            justify-content: center;
+            margin-top: 0.45rem;
+        }
+        .meter-presets button {
+            border: none;
+            background: rgba(15, 32, 68, 0.65);
+            color: #fff;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            font: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .meter-presets button.active { background: #fff; color: var(--primary); }
+
+        .timer-chip {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 5;
+            background: rgba(15, 32, 68, 0.8);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 2rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+        .timer-chip.visible { display: block; }
+        .timer-chip.done { background: var(--accent); animation: pulse 1s ease-in-out 4; }
+
+        .controls {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 0.75rem 1rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to top, rgba(15,32,68,0.85), rgba(15,32,68,0));
+            z-index: 6;
+            transition: opacity 0.4s, transform 0.4s;
+        }
+        .controls.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+        .controls .btn { padding: 0.55rem 1.1rem; font-size: 0.95rem; }
+        .controls .btn-secondary { background: rgba(255,255,255,0.9); }
+        .controls select {
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            border: none;
+            font: inherit;
+            font-weight: 600;
+            background: rgba(255,255,255,0.9);
+        }
+        .controls .timer-inputs { display: flex; align-items: center; gap: 0.3rem; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 0.2rem 0.4rem; }
+        .controls .timer-inputs input { width: 56px; border: none; font: inherit; font-weight: 600; text-align: center; background: transparent; }
+        .controls .timer-inputs button { border: none; background: var(--tool-color); color: #fff; border-radius: 6px; padding: 0.35rem 0.6rem; font: inherit; font-weight: 700; cursor: pointer; }
+
+        .start-card {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 7;
+            background: rgba(15, 32, 68, 0.35);
+        }
+        .start-card .card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-hover);
+            padding: 2rem;
+            max-width: 520px;
+            text-align: center;
+            margin: 1rem;
+        }
+        .start-card h2 { margin-bottom: 0.5rem; }
+        .start-card p { color: var(--text-light); margin-bottom: 1rem; }
+        .start-card .btn-large { margin-top: 0.5rem; }
+        .start-card .error { color: var(--accent); font-weight: 600; margin-top: 0.75rem; }
+
+        /* ---- Settings drawer ---- */
+        .drawer {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: min(380px, 100%);
+            background: #fff;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+            z-index: 8;
+            transform: translateX(105%);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .drawer.open { transform: translateX(0); }
+        .drawer-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #eef1f4;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .drawer-head h2 { font-size: 1.1rem; }
+        .drawer-body { flex: 1; overflow-y: auto; padding: 1.25rem; }
+        .drawer-body h3 { font-size: 0.95rem; margin: 1.1rem 0 0.5rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.04em; }
+        .drawer-body h3:first-child { margin-top: 0; }
+        .scene-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+        .scene-btn {
+            border: 2px solid #dfe6e9;
+            border-radius: 10px;
+            padding: 0.6rem;
+            background: #fff;
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .scene-btn .sw { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; }
+        .scene-btn.active { border-color: var(--tool-color); background: #eef7f1; }
+        .scene-btn .nm { font-weight: 700; font-size: 0.9rem; }
+        .scene-btn .cnt { font-size: 0.75rem; color: var(--text-light); }
+        .setting-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.95rem; }
+        .setting-row label { flex: 1; font-weight: 600; }
+        .setting-row select, .setting-row input[type="number"] {
+            padding: 0.4rem 0.6rem;
+            border: 2px solid #dfe6e9;
+            border-radius: 6px;
+            font: inherit;
+            background: #fff;
+        }
+        .setting-row input[type="number"] { width: 70px; text-align: center; }
+        .setting-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--tool-color); }
+        .setting-row input[type="range"] { flex: 1; accent-color: var(--tool-color); }
+        .hint { font-size: 0.85rem; color: var(--text-light); margin-top: 0.4rem; }
+        .icon-btn {
+            border: none;
+            background: #ecf0f1;
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .collection { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+        .collection span { background: #f0f2f5; border-radius: 8px; padding: 0.25rem 0.5rem; font-size: 1.1rem; }
+
+        /* ---- Calibration ---- */
+        .cal-card {
+            position: absolute;
+            inset: 0;
+            z-index: 9;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 32, 68, 0.6);
+        }
+        .cal-card.open { display: flex; }
+        .cal-card .card { background: #fff; border-radius: var(--radius); padding: 2rem; max-width: 460px; text-align: center; margin: 1rem; }
+        .cal-card .big { font-size: 1.5rem; font-weight: 800; margin: 0.5rem 0; }
+        .cal-card .bar { height: 12px; background: #eef1f4; border-radius: 6px; overflow: hidden; margin: 1rem 0; }
+        .cal-card .bar div { height: 100%; width: 0; background: var(--tool-color); transition: width 0.2s linear; }
+
+        @media (max-width: 600px) {
+            .meter-wrap { width: 80vw; }
+            .timer-chip { font-size: 1.4rem; }
+            .hud .pill { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="tool-header">
+        <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
+        <h1>Quiet Safari</h1>
+    </header>
+
+    <div class="stage" id="stage">
+        <div class="scene" id="scene"></div>
+        <div class="fog" id="fog"><div class="shh" id="shh">Shhh&hellip;</div></div>
+
+        <div class="hud">
+            <span class="pill" id="countPill">0 animals</span>
+            <span class="pill muted" id="statusPill">Not listening</span>
+        </div>
+
+        <div class="meter-wrap" id="meterWrap">
+            <div class="meter" id="meter">
+                <div class="fill" id="meterFill"></div>
+                <div class="goal" id="goalLine"></div>
+            </div>
+            <div class="meter-presets" id="presets">
+                <button data-goal="20" onclick="setGoal(20)">Silent</button>
+                <button data-goal="40" onclick="setGoal(40)">Independent work</button>
+                <button data-goal="60" onclick="setGoal(60)">Partner work</button>
+            </div>
+        </div>
+
+        <div class="timer-chip" id="timerChip">5:00</div>
+
+        <div class="controls" id="controls">
+            <button class="btn btn-primary" id="listenBtn" onclick="toggleListening()">&#127908; Start listening</button>
+            <button class="btn btn-secondary" id="pauseBtn" onclick="togglePause()" disabled>&#10074;&#10074; Pause</button>
+            <select id="sceneSel" onchange="setScene(this.value)" aria-label="Scene"></select>
+            <button class="btn btn-secondary" onclick="toggleMeter()" id="meterBtn">Show meter</button>
+            <span class="timer-inputs" title="Optional countdown shown on the scene">
+                <input type="number" id="timerMin" min="1" max="120" value="5" aria-label="Timer minutes"> min
+                <button onclick="startTimer()" id="timerBtn">Timer</button>
+            </span>
+            <button class="btn btn-secondary" onclick="openDrawer()">&#9881; Settings</button>
+            <button class="btn btn-secondary" onclick="toggleFullscreen()" id="fsBtn">&#9974; Fullscreen</button>
+        </div>
+
+        <div class="start-card" id="startCard">
+            <div class="card">
+                <div style="font-size:3rem;">&#129418; &#129427; &#129433;</div>
+                <h2>Quiet Safari</h2>
+                <p>Shy animals come out while the classroom stays under the volume goal. Stay loud and they run away. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
+                <button class="btn btn-primary btn-large" onclick="toggleListening()">&#127908; Start listening</button>
+                <div class="error" id="micError"></div>
+            </div>
+        </div>
+
+        <aside class="drawer" id="drawer" aria-label="Settings">
+            <div class="drawer-head">
+                <h2>Settings</h2>
+                <button class="icon-btn" onclick="closeDrawer()" aria-label="Close settings">&#10005;</button>
+            </div>
+            <div class="drawer-body">
+                <h3>Scene</h3>
+                <div class="scene-grid" id="sceneGrid"></div>
+                <p class="hint">Each scene keeps its own animals, so switching scenes never loses any.</p>
+
+                <h3>Volume goal</h3>
+                <div class="setting-row">
+                    <label for="goalRange">Goal (<span id="goalVal"></span>)</label>
+                    <input type="range" id="goalRange" min="5" max="95" step="1" oninput="setGoal(parseInt(this.value, 10))">
+                </div>
+                <div class="setting-row">
+                    <label>Calibrate for this room</label>
+                    <button class="btn btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.85rem;" onclick="startCalibration()">Calibrate</button>
+                </div>
+                <p class="hint" id="calHint">Optional: five seconds of silence, then five seconds of normal talking. The meter works on a default until then.</p>
+
+                <h3>Animals</h3>
+                <div class="setting-row">
+                    <label for="rateSel">A new animal arrives about every</label>
+                    <select id="rateSel" onchange="setRate(this.value)">
+                        <option value="1">1 minute</option>
+                        <option value="2">2 minutes</option>
+                        <option value="3">3 minutes</option>
+                        <option value="5">5 minutes</option>
+                        <option value="8">8 minutes</option>
+                        <option value="custom">Custom&hellip;</option>
+                    </select>
+                </div>
+                <div class="setting-row" id="customRateRow" style="display:none">
+                    <label for="rateCustom">Custom minutes</label>
+                    <input type="number" id="rateCustom" min="0.5" max="60" step="0.5" onchange="setRate(this.value)">
+                </div>
+                <div class="setting-row">
+                    <label for="loudSel">When it is too loud</label>
+                    <select id="loudSel" onchange="setLoudMode(this.value)">
+                        <option value="run">Animals run away</option>
+                        <option value="pause">Just pause (nothing leaves)</option>
+                    </select>
+                </div>
+                <p class="hint">Brief noises like a dropped book cost nothing. When the room stays over the goal, the scene clouds over. With "run away", one animal leaves right away, then a few more every five seconds until the room is quiet again. Quiet time toward the next animal is paused, never lost.</p>
+
+                <h3>Microphone</h3>
+                <div class="setting-row">
+                    <label for="micSel">Input</label>
+                    <select id="micSel" onchange="setMic(this.value)"><option value="">Default</option></select>
+                </div>
+                <div class="setting-row">
+                    <label for="meterChk">Always show the meter on screen</label>
+                    <input type="checkbox" id="meterChk" onchange="setShowMeter(this.checked)">
+                </div>
+
+                <h3>This scene's animals</h3>
+                <div class="collection" id="collection"></div>
+                <div class="btn-group" style="justify-content:flex-start;margin-top:0.75rem;">
+                    <button class="btn btn-danger" style="padding:0.4rem 0.8rem;font-size:0.85rem;" onclick="resetScene()">Reset this scene</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="cal-card" id="calCard">
+            <div class="card">
+                <div class="big" id="calTitle">Stay silent</div>
+                <p id="calText">Everyone quiet for five seconds&hellip;</p>
+                <div class="bar"><div id="calBar"></div></div>
+                <button class="btn btn-secondary" onclick="cancelCalibration()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/sounds.js"></script>
+    <script>
+        // ---------- Scenes ----------
+        // NOTE: sounds.js owns a global named audioCtx; the microphone uses micCtx to avoid a clash.
+        const SCENES = {
+            savanna: {
+                name: 'Savanna', swatch: '#e9b24a',
+                bg: 'linear-gradient(#f9d976 0%, #f39c5a 45%, #c98a3a 46%, #d9a85a 70%, #b9893b 100%)',
+                fog: 'rgba(214, 184, 130, 0.85)', zone: [0.55, 0.88], sun: { color: '#fff2a8', x: 78, y: 10, size: 90 },
+                deco: [['\u{1F334}', 6, 42, 4], ['\u{1F335}', 88, 50, 3], ['\u{1FAA8}', 40, 60, 2.2], ['\u{1F33E}', 20, 72, 2.5], ['\u{1F33E}', 65, 80, 2.5]],
+                animals: [{ emoji: '\u{1F993}', name: 'Zebra', tier: 'common' }, { emoji: '\u{1F992}', name: 'Giraffe', tier: 'uncommon' }, { emoji: '\u{1F981}', name: 'Lion', tier: 'rare' }]
+            },
+            reef: {
+                name: 'Coral reef', swatch: '#1f8fb4',
+                bg: 'linear-gradient(#7fd3f0 0%, #2a9fd6 30%, #1b6fa8 75%, #0f4a7a 100%)',
+                fog: 'rgba(60, 110, 100, 0.85)', zone: [0.2, 0.88],
+                deco: [['\u{1FAB8}', 10, 82, 3.5], ['\u{1FAB8}', 80, 84, 3], ['\u{1F33F}', 45, 86, 2.5], ['\u{1F41A}', 28, 90, 1.6], ['\u{1FAB8}', 60, 88, 2.4]],
+                animals: [{ emoji: '\u{1F420}', name: 'Fish', tier: 'common' }, { emoji: '\u{1F422}', name: 'Turtle', tier: 'uncommon' }, { emoji: '\u{1F988}', name: 'Shark', tier: 'rare' }]
+            },
+            space: {
+                name: 'Deep space', swatch: '#2b2d6e',
+                bg: 'radial-gradient(circle at 70% 30%, #3d2e7a 0%, #141a3b 45%, #060915 100%)',
+                fog: 'rgba(90, 90, 110, 0.8)', zone: [0.1, 0.85], stars: 70,
+                deco: [['\u{1F30D}', 12, 70, 4], ['\u{1F319}', 85, 15, 3]],
+                animals: [{ emoji: '\u{1F6F0}️', name: 'Satellite', tier: 'common' }, { emoji: '☄️', name: 'Comet', tier: 'uncommon' }, { emoji: '\u{1F30C}', name: 'Galaxy', tier: 'rare' }]
+            },
+            prehistoric: {
+                name: 'Prehistoric', swatch: '#6a8f3c',
+                bg: 'linear-gradient(#ffd19a 0%, #f0a36a 40%, #6f8f3b 41%, #4d6e2a 100%)',
+                fog: 'rgba(120, 100, 70, 0.85)', zone: [0.5, 0.88], sun: { color: '#ffb36b', x: 20, y: 12, size: 80 },
+                deco: [['\u{1F30B}', 75, 28, 5], ['\u{1F334}', 10, 48, 3.5], ['\u{1F33F}', 50, 70, 2.5], ['\u{1FAA8}', 88, 80, 2.2]],
+                animals: [{ emoji: '\u{1F995}', name: 'Sauropod', tier: 'common' }, { emoji: '\u{1F996}', name: 'T. rex', tier: 'uncommon' }, { emoji: '\u{1F985}', name: 'Raptor', tier: 'rare' }]
+            },
+            forest: {
+                name: 'Forest', swatch: '#2f7a3e',
+                bg: 'linear-gradient(#bfe3f5 0%, #9fd0c8 40%, #3f7a3e 41%, #2b5a2c 100%)',
+                fog: 'rgba(225, 232, 235, 0.85)', zone: [0.55, 0.88],
+                deco: [['\u{1F332}', 5, 36, 5], ['\u{1F333}', 30, 32, 5], ['\u{1F332}', 60, 38, 4.5], ['\u{1F333}', 85, 34, 5], ['\u{1F344}', 45, 84, 1.8], ['\u{1FAB5}', 70, 86, 2.2]],
+                animals: [{ emoji: '\u{1F43F}️', name: 'Squirrel', tier: 'common' }, { emoji: '\u{1F98A}', name: 'Fox', tier: 'uncommon' }, { emoji: '\u{1F98C}', name: 'Deer', tier: 'rare' }]
+            },
+            jungle: {
+                name: 'Jungle', swatch: '#1f8a4c',
+                bg: 'linear-gradient(#9be0b2 0%, #3faa6a 35%, #1f6b3c 36%, #164d2b 100%)',
+                fog: 'rgba(120, 170, 130, 0.85)', zone: [0.5, 0.88],
+                deco: [['\u{1F334}', 8, 30, 5.5], ['\u{1F33F}', 25, 70, 3], ['\u{1F334}', 80, 28, 5], ['\u{1F33A}', 55, 78, 2.2], ['\u{1F33F}', 90, 72, 3]],
+                animals: [{ emoji: '\u{1F9A5}', name: 'Sloth', tier: 'common' }, { emoji: '\u{1F99C}', name: 'Toucan', tier: 'uncommon' }, { emoji: '\u{1F406}', name: 'Jaguar', tier: 'rare' }]
+            },
+            arctic: {
+                name: 'Arctic', swatch: '#9fd3ea',
+                bg: 'linear-gradient(#cfe9f7 0%, #a9d6ee 40%, #eef7fb 41%, #d6ecf6 100%)',
+                fog: 'rgba(240, 246, 250, 0.9)', zone: [0.5, 0.88], sun: { color: '#fff7d6', x: 15, y: 10, size: 60 },
+                deco: [['\u{1F9CA}', 20, 52, 4], ['\u{1F9CA}', 70, 58, 3.5], ['⛰️', 45, 30, 5], ['\u{1F9CA}', 90, 78, 2.5]],
+                animals: [{ emoji: '\u{1F9AD}', name: 'Seal', tier: 'common' }, { emoji: '\u{1F43B}‍❄️', name: 'Polar bear', tier: 'uncommon' }, { emoji: '\u{1F433}', name: 'Whale', tier: 'rare' }]
+            }
+        };
+        const TIER_WEIGHTS = { common: 60, uncommon: 30, rare: 10 };
+
+        // Noise-bucket constants (slow in, fast out)
+        const TOO_LOUD_AFTER_S = 6;
+        const FASTEST_TOO_LOUD_MS = 1000;
+        const EXCESS_SCALE = 12;
+        const DRAIN_PER_S = 1;
+        const MAX_STEP_MS = 250;
+        const LEAVE_TOO_LOUD_MS = 3000;
+        const LOOKBACK_MS = 15000;
+        // Arrival constants
+        const TEASER_MIN_MS = 10000, TEASER_MAX_MS = 20000, ARRIVAL_JITTER = 0.2;
+        // Run-away constants
+        const FLEE_EVERY_MS = 5000, FLEE_FRACTION = 0.2;
+
+        const STORAGE_KEY = 'w68-quiet-safari';
+
+        // ---------- State ----------
+        let settings = {
+            scene: 'savanna', goal: 40, rateMin: 3, loudMode: 'run', showMeter: false, micId: '',
+            cal: null,                       // { silent: dB, talk: dB }
+            present: {}                      // scene -> [{ slug, x, y, flip }]
+        };
+        let listening = false, paused = false;
+        let micCtx = null, analyser = null, micStream = null, sampleBuf = null;
+        let level = 0, smoothLevel = 0;
+        let loud = { tooLoud: false, bucket: 0, samples: [], lastT: null, changedAt: 0 };
+        let clock = { bankedMs: 0, targetMs: 0, teaser: true, intervalMs: 0 };
+        let lastFrame = null;
+        let fleeTimer = null;
+        let ignoreUntil = 0;                 // skip judging noise right after our own chime
+        let hideTimer = null;
+        let countdown = null;                // { endAt, timerId }
+        let cal = null;
+
+        function sceneDef() { return SCENES[settings.scene] || SCENES.savanna; }
+        function presentList() {
+            if (!settings.present[settings.scene]) settings.present[settings.scene] = [];
+            return settings.present[settings.scene];
+        }
+
+        function save() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (e) {}
+        }
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const d = JSON.parse(raw);
+                if (SCENES[d.scene]) settings.scene = d.scene;
+                if (isFinite(d.goal)) settings.goal = Math.min(95, Math.max(5, Math.round(d.goal)));
+                if (isFinite(d.rateMin) && d.rateMin > 0) settings.rateMin = Math.min(60, d.rateMin);
+                if (d.loudMode === 'pause' || d.loudMode === 'run') settings.loudMode = d.loudMode;
+                settings.showMeter = !!d.showMeter;
+                if (typeof d.micId === 'string') settings.micId = d.micId;
+                if (d.cal && isFinite(d.cal.silent) && isFinite(d.cal.talk) && d.cal.talk > d.cal.silent) settings.cal = { silent: d.cal.silent, talk: d.cal.talk };
+                if (d.present && typeof d.present === 'object') {
+                    Object.keys(d.present).forEach(k => {
+                        if (!SCENES[k] || !Array.isArray(d.present[k])) return;
+                        settings.present[k] = d.present[k].filter(a => a && SCENES[k].animals.some(x => x.name === a.slug))
+                            .map(a => ({ slug: a.slug, x: +a.x || 50, y: +a.y || 70, flip: !!a.flip }));
+                    });
+                }
+            } catch (e) {}
+        }
+
+        // ---------- Scene rendering ----------
+        function buildScene() {
+            const s = sceneDef();
+            const el = document.getElementById('scene');
+            el.style.background = s.bg;
+            let html = '';
+            if (s.sun) html += `<div class="sun" style="left:${s.sun.x}%;top:${s.sun.y}%;width:${s.sun.size}px;height:${s.sun.size}px;background:${s.sun.color};box-shadow:0 0 60px ${s.sun.color}"></div>`;
+            if (s.stars) {
+                for (let i = 0; i < s.stars; i++) {
+                    html += `<div class="star" style="left:${Math.random() * 100}%;top:${Math.random() * 100}%;animation-delay:${(Math.random() * 3).toFixed(2)}s"></div>`;
+                }
+            }
+            (s.deco || []).forEach(d => {
+                html += `<div class="deco" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem">${d[0]}</div>`;
+            });
+            el.innerHTML = html;
+            document.getElementById('fog').style.background = s.fog;
+            presentList().forEach(a => placeAnimal(a, false));
+            updateCount();
+        }
+
+        function animalDef(slug) {
+            return sceneDef().animals.find(a => a.name === slug);
+        }
+
+        function placeAnimal(a, fresh) {
+            const def = animalDef(a.slug);
+            if (!def) return;
+            const el = document.createElement('div');
+            el.className = 'animal' + (a.flip ? ' flip' : '') + (paused ? ' paused' : '');
+            el.dataset.slug = a.slug;
+            const depth = (a.y - sceneDef().zone[0] * 100) / ((sceneDef().zone[1] - sceneDef().zone[0]) * 100); // 0 far .. 1 near
+            const size = 2.4 + depth * 2.6;
+            el.style.left = a.x + '%';
+            el.style.top = a.y + '%';
+            el.style.fontSize = size + 'rem';
+            el.style.setProperty('--dur', (7 + Math.random() * 8).toFixed(1) + 's');
+            el.style.setProperty('--delay', fresh ? '0s' : (-Math.random() * 8).toFixed(1) + 's');
+            el.style.setProperty('--wx', Math.round(20 + Math.random() * 50) + 'px');
+            el.style.zIndex = Math.round(a.y);
+            el.textContent = def.emoji;
+            el.title = def.name;
+            document.getElementById('scene').appendChild(el);
+        }
+
+        function rollAnimal() {
+            const present = presentList().map(a => a.slug);
+            const eligible = sceneDef().animals.filter(a => a.tier !== 'rare' || !present.includes(a.name));
+            if (!eligible.length) return null;
+            const tiers = ['common', 'uncommon', 'rare'].filter(t => eligible.some(a => a.tier === t));
+            const total = tiers.reduce((s, t) => s + TIER_WEIGHTS[t], 0);
+            let r = Math.random() * total;
+            let tier = tiers[tiers.length - 1];
+            for (const t of tiers) { r -= TIER_WEIGHTS[t]; if (r < 0) { tier = t; break; } }
+            const pool = eligible.filter(a => a.tier === tier);
+            return pool[Math.floor(Math.random() * pool.length)] || pool[0];
+        }
+
+        function arrive() {
+            const def = rollAnimal();
+            if (!def) return;
+            const z = sceneDef().zone;
+            const a = {
+                slug: def.name,
+                x: Math.round(6 + Math.random() * 84),
+                y: Math.round((z[0] + Math.random() * (z[1] - z[0])) * 100),
+                flip: Math.random() < 0.5
+            };
+            presentList().push(a);
+            placeAnimal(a, true);
+            save();
+            updateCount();
+            try { playTone(880, 0.12, 'sine', 0.08); setTimeout(() => playTone(1175, 0.18, 'sine', 0.08), 120); } catch (e) {}
+            ignoreUntil = performance.now() + 800;
+        }
+
+        function fleeSome(count) {
+            const list = presentList();
+            if (!list.length) return;
+            const els = Array.from(document.querySelectorAll('.animal:not(.flee)'));
+            for (let i = 0; i < count && els.length; i++) {
+                const el = els.splice(Math.floor(Math.random() * els.length), 1)[0];
+                el.classList.add('flee');
+                // Remove one matching record (last added with this slug)
+                const idx = list.map(a => a.slug).lastIndexOf(el.dataset.slug);
+                if (idx >= 0) list.splice(idx, 1);
+                setTimeout(() => el.remove(), 1200);
+            }
+            save();
+            updateCount();
+        }
+
+        function updateCount() {
+            const n = presentList().length;
+            document.getElementById('countPill').textContent = n + (n === 1 ? ' animal' : ' animals');
+            renderCollection();
+            renderSceneGrid();
+        }
+
+        function renderCollection() {
+            const col = document.getElementById('collection');
+            const list = presentList();
+            if (!list.length) { col.innerHTML = '<span style="font-size:0.85rem;color:var(--text-light);background:none;">None yet. Quiet work brings them out.</span>'; return; }
+            const counts = {};
+            list.forEach(a => { counts[a.slug] = (counts[a.slug] || 0) + 1; });
+            col.innerHTML = Object.keys(counts).map(slug => {
+                const d = animalDef(slug);
+                return `<span title="${d.name}">${d.emoji} &times;${counts[slug]}</span>`;
+            }).join('');
+        }
+
+        function renderSceneGrid() {
+            const grid = document.getElementById('sceneGrid');
+            grid.innerHTML = Object.keys(SCENES).map(k => {
+                const s = SCENES[k];
+                const n = (settings.present[k] || []).length;
+                return `<button class="scene-btn ${k === settings.scene ? 'active' : ''}" onclick="setScene('${k}')">
+                    <span class="sw" style="background:${s.swatch}"></span>
+                    <span><div class="nm">${s.name}</div><div class="cnt">${n} animal${n === 1 ? '' : 's'}</div></span>
+                </button>`;
+            }).join('');
+            const sel = document.getElementById('sceneSel');
+            sel.innerHTML = Object.keys(SCENES).map(k => `<option value="${k}" ${k === settings.scene ? 'selected' : ''}>${SCENES[k].name}</option>`).join('');
+        }
+
+        function setScene(key) {
+            if (!SCENES[key]) return;
+            settings.scene = key;
+            save();
+            buildScene();
+            resetClock(true);
+        }
+
+        function resetScene() {
+            if (!confirm('Send all the animals in this scene home and start again?')) return;
+            settings.present[settings.scene] = [];
+            save();
+            buildScene();
+            resetClock(true);
+        }
+
+        // ---------- Microphone & level ----------
+        function dbToLevel(db) {
+            let lo = -62, hi = -12;         // default mapping: quiet room ~30, normal talking ~70
+            if (settings.cal) {
+                const span = Math.max(6, settings.cal.talk - settings.cal.silent);
+                // silence -> 10, normal talking -> 65
+                return Math.max(0, Math.min(100, 10 + (db - settings.cal.silent) / span * 55));
+            }
+            return Math.max(0, Math.min(100, (db - lo) / (hi - lo) * 100));
+        }
+
+        async function startMic() {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !AC) {
+                throw new Error('This browser cannot use the microphone.');
+            }
+            const constraints = { audio: settings.micId ? { deviceId: { exact: settings.micId }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : { echoCancellation: false, noiseSuppression: false, autoGainControl: false } };
+            micStream = await navigator.mediaDevices.getUserMedia(constraints);
+            micCtx = new AC();
+            await micCtx.resume();
+            const src = micCtx.createMediaStreamSource(micStream);
+            analyser = micCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            analyser.smoothingTimeConstant = 0.3;
+            src.connect(analyser);
+            sampleBuf = new Float32Array(analyser.fftSize);
+            listMics();
+        }
+
+        function stopMic() {
+            if (micStream) micStream.getTracks().forEach(t => t.stop());
+            if (micCtx) { try { micCtx.close(); } catch (e) {} }
+            micStream = null; micCtx = null; analyser = null;
+        }
+
+        async function listMics() {
+            try {
+                const devs = await navigator.mediaDevices.enumerateDevices();
+                const mics = devs.filter(d => d.kind === 'audioinput');
+                const sel = document.getElementById('micSel');
+                sel.innerHTML = '<option value="">Default</option>' + mics.map((m, i) => `<option value="${m.deviceId}" ${m.deviceId === settings.micId ? 'selected' : ''}>${m.label || ('Microphone ' + (i + 1))}</option>`).join('');
+            } catch (e) {}
+        }
+
+        function readLevel() {
+            if (!analyser) return 0;
+            analyser.getFloatTimeDomainData(sampleBuf);
+            let sum = 0;
+            for (let i = 0; i < sampleBuf.length; i++) sum += sampleBuf[i] * sampleBuf[i];
+            const rms = Math.sqrt(sum / sampleBuf.length);
+            const db = 20 * Math.log10(Math.max(rms, 1e-6));
+            return { db, level: dbToLevel(db) };
+        }
+
+        // ---------- Loud state (bucket) ----------
+        function addSample(lv, t) {
+            const goal = settings.goal;
+            if (loud.lastT !== null) {
+                const dt = Math.min(MAX_STEP_MS, Math.max(0, t - loud.lastT)) / 1000;
+                const excess = lv - goal;
+                if (excess > 0) {
+                    const rate = Math.min(TOO_LOUD_AFTER_S / (FASTEST_TOO_LOUD_MS / 1000), 1 + Math.pow(excess / EXCESS_SCALE, 2));
+                    loud.bucket += rate * dt;
+                } else {
+                    loud.bucket = Math.max(0, loud.bucket - DRAIN_PER_S * dt);
+                }
+            }
+            loud.lastT = t;
+            loud.samples.push({ t, lv });
+            while (loud.samples.length && loud.samples[0].t < t - LOOKBACK_MS) loud.samples.shift();
+
+            if (!loud.tooLoud) {
+                if (loud.bucket >= TOO_LOUD_AFTER_S) { loud.tooLoud = true; loud.changedAt = t; onTooLoud(); }
+            } else {
+                // Leave after three quiet seconds, judged by the mean, using only samples since the change.
+                if (t - loud.changedAt >= LEAVE_TOO_LOUD_MS) {
+                    const win = loud.samples.filter(s => s.t >= t - LEAVE_TOO_LOUD_MS && s.t >= loud.changedAt);
+                    const mean = win.reduce((a, s) => a + s.lv, 0) / Math.max(1, win.length);
+                    if (win.length && mean <= goal) { loud.tooLoud = false; loud.changedAt = t; loud.bucket = 0; onQuietAgain(); }
+                }
+            }
+        }
+
+        function onTooLoud() {
+            document.getElementById('fog').classList.add('on');
+            document.getElementById('statusPill').textContent = 'Too loud';
+            if (settings.loudMode === 'run') {
+                fleeSome(1);
+                fleeTimer = setInterval(() => {
+                    const n = presentList().length;
+                    if (n > 0) fleeSome(Math.max(1, Math.ceil(n * FLEE_FRACTION)));
+                }, FLEE_EVERY_MS);
+            }
+        }
+
+        function onQuietAgain() {
+            document.getElementById('fog').classList.remove('on');
+            document.getElementById('statusPill').textContent = 'Quiet';
+            if (fleeTimer) { clearInterval(fleeTimer); fleeTimer = null; }
+        }
+
+        // ---------- Arrival clock ----------
+        function intervalMs() { return settings.rateMin * 60000; }
+        function nextTarget() { return intervalMs() * (1 - ARRIVAL_JITTER + Math.random() * 2 * ARRIVAL_JITTER); }
+        function resetClock(teaser) {
+            clock = { bankedMs: 0, teaser: !!teaser, intervalMs: intervalMs(), targetMs: teaser ? TEASER_MIN_MS + Math.random() * (TEASER_MAX_MS - TEASER_MIN_MS) : nextTarget() };
+        }
+        function advanceClock(deltaMs, isQuiet) {
+            if (clock.intervalMs !== intervalMs()) {
+                if (!clock.teaser) clock.targetMs = clock.targetMs * (intervalMs() / clock.intervalMs);
+                clock.intervalMs = intervalMs();
+            }
+            if (!isQuiet) return;
+            clock.bankedMs += deltaMs;
+            if (clock.bankedMs >= clock.targetMs) {
+                clock.bankedMs -= clock.targetMs;
+                clock.teaser = false;
+                clock.targetMs = nextTarget();
+                arrive();
+            }
+        }
+
+        // ---------- Main loop ----------
+        function frame(now) {
+            if (!listening) return;
+            requestAnimationFrame(frame);
+            const r = readLevel();
+            level = r.level;
+            smoothLevel += (level - smoothLevel) * (level > smoothLevel ? 0.5 : 0.15);
+            document.getElementById('meterFill').style.width = smoothLevel.toFixed(1) + '%';
+
+            if (cal) { calStep(now, r.db); return; }
+            const delta = lastFrame === null ? 0 : Math.min(MAX_STEP_MS, now - lastFrame);
+            lastFrame = now;
+            if (paused) return;
+            if (now < ignoreUntil) return;
+            addSample(level, now);
+            advanceClock(delta, !loud.tooLoud);
+        }
+
+        async function toggleListening() {
+            if (listening) {
+                listening = false;
+                stopMic();
+                if (fleeTimer) { clearInterval(fleeTimer); fleeTimer = null; }
+                document.getElementById('fog').classList.remove('on');
+                document.getElementById('listenBtn').innerHTML = '&#127908; Start listening';
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('statusPill').textContent = 'Not listening';
+                document.getElementById('startCard').style.display = '';
+                document.getElementById('meterFill').style.width = '0%';
+                showMeter(settings.showMeter);
+                return;
+            }
+            document.getElementById('micError').textContent = '';
+            try {
+                await startMic();
+            } catch (e) {
+                document.getElementById('micError').textContent = 'Microphone access is needed. Allow the microphone in the browser bar and try again. (' + (e.message || e.name) + ')';
+                return;
+            }
+            listening = true;
+            paused = false;
+            lastFrame = null;
+            loud = { tooLoud: false, bucket: 0, samples: [], lastT: null, changedAt: 0 };
+            resetClock(true);
+            document.getElementById('startCard').style.display = 'none';
+            document.getElementById('listenBtn').innerHTML = '&#9632; Stop';
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('statusPill').textContent = 'Quiet';
+            showMeter(true);
+            scheduleHide();
+            requestAnimationFrame(frame);
+        }
+
+        function togglePause() {
+            paused = !paused;
+            document.getElementById('pauseBtn').innerHTML = paused ? '&#9654; Resume' : '&#10074;&#10074; Pause';
+            document.getElementById('statusPill').textContent = paused ? 'Paused' : (loud.tooLoud ? 'Too loud' : 'Quiet');
+            document.querySelectorAll('.animal').forEach(el => el.classList.toggle('paused', paused));
+            if (paused && fleeTimer) { clearInterval(fleeTimer); fleeTimer = null; }
+            if (!paused) { lastFrame = null; if (loud.tooLoud && settings.loudMode === 'run' && !fleeTimer) onTooLoud(); }
+        }
+
+        // ---------- Settings ----------
+        function setGoal(g) {
+            settings.goal = Math.min(95, Math.max(5, Math.round(g)));
+            save();
+            renderGoal();
+        }
+        function renderGoal() {
+            document.getElementById('goalLine').style.left = settings.goal + '%';
+            document.getElementById('goalRange').value = settings.goal;
+            document.getElementById('goalVal').textContent = settings.goal;
+            document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.goal, 10) === settings.goal));
+        }
+        function setRate(v) {
+            if (v === 'custom') {
+                document.getElementById('customRateRow').style.display = 'flex';
+                document.getElementById('rateCustom').value = settings.rateMin;
+                return;
+            }
+            const n = parseFloat(v);
+            if (!isFinite(n) || n <= 0) return;
+            settings.rateMin = Math.min(60, Math.max(0.5, n));
+            save();
+            renderRate();
+        }
+        function renderRate() {
+            const sel = document.getElementById('rateSel');
+            const preset = ['1', '2', '3', '5', '8'].includes(String(settings.rateMin));
+            sel.value = preset ? String(settings.rateMin) : 'custom';
+            document.getElementById('customRateRow').style.display = preset ? 'none' : 'flex';
+            document.getElementById('rateCustom').value = settings.rateMin;
+        }
+        function setLoudMode(v) {
+            settings.loudMode = v;
+            save();
+            if (v === 'pause' && fleeTimer) { clearInterval(fleeTimer); fleeTimer = null; }
+            if (v === 'run' && loud.tooLoud && listening && !paused && !fleeTimer) onTooLoud();
+        }
+        function setMic(id) {
+            settings.micId = id;
+            save();
+            if (listening) { stopMic(); startMic().catch(() => {}); }
+        }
+        function setShowMeter(on) {
+            settings.showMeter = on;
+            save();
+            showMeter(on || listening);
+        }
+        function showMeter(on) {
+            document.getElementById('meterWrap').classList.toggle('visible', on);
+            document.getElementById('meterBtn').textContent = settings.showMeter ? 'Hide meter' : 'Show meter';
+        }
+        function toggleMeter() { setShowMeter(!settings.showMeter); document.getElementById('meterChk').checked = settings.showMeter; }
+
+        // Drag the goal line on the meter
+        (function () {
+            const meter = document.getElementById('meter');
+            let dragging = false;
+            const setFromEvent = (e) => {
+                const r = meter.getBoundingClientRect();
+                const x = (e.clientX - r.left) / r.width * 100;
+                setGoal(x);
+            };
+            meter.addEventListener('pointerdown', e => { dragging = true; meter.setPointerCapture(e.pointerId); setFromEvent(e); });
+            meter.addEventListener('pointermove', e => { if (dragging) setFromEvent(e); });
+            meter.addEventListener('pointerup', () => { dragging = false; });
+            meter.addEventListener('pointercancel', () => { dragging = false; });
+        })();
+
+        function openDrawer() { document.getElementById('drawer').classList.add('open'); renderCollection(); renderSceneGrid(); }
+        function closeDrawer() { document.getElementById('drawer').classList.remove('open'); }
+
+        // ---------- Calibration ----------
+        function startCalibration() {
+            if (!listening) { alert('Press "Start listening" first, then calibrate.'); return; }
+            closeDrawer();
+            cal = { phase: 'silent', start: performance.now(), sum: 0, n: 0, silent: null };
+            document.getElementById('calCard').classList.add('open');
+            document.getElementById('calTitle').textContent = 'Stay silent';
+            document.getElementById('calText').textContent = 'Everyone quiet for five seconds…';
+            document.getElementById('calBar').style.width = '0%';
+        }
+        function calStep(now, db) {
+            const elapsed = now - cal.start;
+            document.getElementById('calBar').style.width = Math.min(100, elapsed / 50) + '%';
+            if (elapsed > 500) { cal.sum += db; cal.n++; }
+            if (elapsed >= 5000) {
+                const mean = cal.sum / Math.max(1, cal.n);
+                if (cal.phase === 'silent') {
+                    cal = { phase: 'talk', start: now, sum: 0, n: 0, silent: mean };
+                    document.getElementById('calTitle').textContent = 'Now talk normally';
+                    document.getElementById('calText').textContent = 'Everyone talk at a normal classroom volume for five seconds…';
+                    document.getElementById('calBar').style.width = '0%';
+                    try { playTick(); } catch (e) {}
+                } else {
+                    const silent = cal.silent, talk = mean;
+                    cal = null;
+                    document.getElementById('calCard').classList.remove('open');
+                    if (talk - silent < 4) {
+                        alert('The talking sample was not much louder than the silence. Calibration was not saved. Try again with everyone talking.');
+                    } else {
+                        settings.cal = { silent, talk };
+                        save();
+                        renderCalHint();
+                        try { playChime(); } catch (e) {}
+                        ignoreUntil = performance.now() + 2500;
+                    }
+                }
+            }
+        }
+        function cancelCalibration() { cal = null; document.getElementById('calCard').classList.remove('open'); }
+        function renderCalHint() {
+            document.getElementById('calHint').textContent = settings.cal
+                ? 'Calibrated for this room (silence ' + settings.cal.silent.toFixed(0) + ' dB, talking ' + settings.cal.talk.toFixed(0) + ' dB). Calibrate again if you move rooms.'
+                : 'Optional: five seconds of silence, then five seconds of normal talking. The meter works on a default until then.';
+        }
+
+        // ---------- Countdown timer on the scene ----------
+        function startTimer() {
+            const mins = Math.min(120, Math.max(1, parseInt(document.getElementById('timerMin').value, 10) || 5));
+            if (countdown) { clearInterval(countdown.timerId); countdown = null; document.getElementById('timerChip').classList.remove('visible', 'done'); document.getElementById('timerBtn').textContent = 'Timer'; return; }
+            const chip = document.getElementById('timerChip');
+            chip.classList.add('visible'); chip.classList.remove('done');
+            document.getElementById('timerBtn').textContent = 'Stop';
+            countdown = { endAt: Date.now() + mins * 60000, timerId: null };
+            const tick = () => {
+                const left = countdown.endAt - Date.now();
+                const s = Math.max(0, Math.ceil(left / 1000));
+                chip.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+                if (left <= 0) {
+                    clearInterval(countdown.timerId);
+                    countdown = null;
+                    chip.classList.add('done');
+                    document.getElementById('timerBtn').textContent = 'Timer';
+                    ignoreUntil = performance.now() + 3000;   // our chime is never judged as too loud
+                    try { playAlarm(); } catch (e) {}
+                    setTimeout(() => chip.classList.remove('visible', 'done'), 6000);
+                }
+            };
+            tick();
+            countdown.timerId = setInterval(tick, 250);
+        }
+
+        // ---------- Fullscreen & auto-hide controls ----------
+        function toggleFullscreen() {
+            const on = !document.body.classList.contains('fullscreen');
+            document.body.classList.toggle('fullscreen', on);
+            document.getElementById('fsBtn').innerHTML = on ? '&#10005; Exit' : '&#9974; Fullscreen';
+            if (on && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+            else if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        }
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && document.body.classList.contains('fullscreen')) {
+                document.body.classList.remove('fullscreen');
+                document.getElementById('fsBtn').innerHTML = '&#9974; Fullscreen';
+            }
+        });
+        function scheduleHide() {
+            clearTimeout(hideTimer);
+            document.getElementById('controls').classList.remove('hidden');
+            if (!listening) return;
+            hideTimer = setTimeout(() => {
+                if (document.getElementById('drawer').classList.contains('open')) return;
+                document.getElementById('controls').classList.add('hidden');
+                if (!settings.showMeter) showMeter(false);
+            }, 4000);
+        }
+        document.getElementById('stage').addEventListener('pointermove', () => { if (listening) { showMeter(true); } scheduleHide(); });
+        document.getElementById('stage').addEventListener('pointerdown', () => { if (listening) { showMeter(true); } scheduleHide(); });
+
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+            if (e.key === 'Escape') { closeDrawer(); if (document.body.classList.contains('fullscreen')) toggleFullscreen(); }
+            else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+            else if (e.key === 'm' || e.key === 'M') toggleMeter();
+            else if (e.key === ' ' && listening) { e.preventDefault(); togglePause(); }
+        });
+
+        // ---------- Init ----------
+        load();
+        document.getElementById('loudSel').value = settings.loudMode;
+        document.getElementById('meterChk').checked = settings.showMeter;
+        renderGoal();
+        renderRate();
+        renderCalHint();
+        buildScene();
+        showMeter(settings.showMeter);
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) listMics();
+    </script>
+</body>
+</html>
