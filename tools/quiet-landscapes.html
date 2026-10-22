@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiet Safari - W68 Teacher Tools</title>
+    <title>Quiet Landscapes - W68 Teacher Tools</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
         :root { --tool-color: #2e7d4f; }
@@ -34,9 +34,60 @@
             line-height: 1;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
         }
-        .sun { position: absolute; border-radius: 50%; pointer-events: none; }
+        .sun { position: absolute; border-radius: 50%; pointer-events: none; animation: glow 6s ease-in-out infinite; }
+        .sun.moon { background: #fff8d6; box-shadow: 0 0 40px #fff3c4; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 50px var(--glow, #fff); } 50% { box-shadow: 0 0 90px var(--glow, #fff); } }
         .star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.8; animation: twinkle 3s ease-in-out infinite; }
         @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        .ridge { position: absolute; left: 0; width: 100%; pointer-events: none; }
+
+        /* Decoration motion */
+        .deco.sway { transform-origin: 50% 100%; animation: sway 5s ease-in-out infinite alternate; }
+        @keyframes sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+        .deco.flicker { animation: flicker 2.2s ease-in-out infinite; }
+        @keyframes flicker { 0%, 100% { filter: brightness(1) drop-shadow(0 0 6px rgba(255,160,40,0.7)); } 50% { filter: brightness(1.25) drop-shadow(0 0 14px rgba(255,170,40,0.95)); } 72% { filter: brightness(0.9) drop-shadow(0 0 4px rgba(255,160,40,0.5)); } }
+        .deco.dead { filter: grayscale(1) brightness(0.45) drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
+        .deco.autumn { filter: sepia(0.8) saturate(2.2) hue-rotate(-25deg) drop-shadow(0 2px 2px rgba(0,0,0,0.15)); }
+        .deco.spin { animation: spin 60s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Ambient layers */
+        .amb { position: absolute; pointer-events: none; line-height: 1; }
+        .cloud { left: -15vw; animation: drift linear infinite; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); }
+        .cloud.dark { filter: brightness(0.35); opacity: 0.6; }
+        @keyframes drift { from { transform: translateX(0); } to { transform: translateX(130vw); } }
+        .bird { left: -8vw; animation: drift linear infinite; opacity: 0.85; }
+        .bat { left: -8vw; animation: drift linear infinite, flap ease-in-out infinite alternate; }
+        @keyframes flap { from { translate: 0 0; scale: 1 1; } to { translate: 0 -14px; scale: 1 0.8; } }
+        .flake { top: -2vh; border-radius: 50%; background: #fff; filter: blur(0.4px); animation: fall linear infinite; }
+        .leaf { top: -5vh; animation: fall linear infinite; }
+        @keyframes fall { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(var(--drift, 0px), 112vh) rotate(var(--rot, 0deg)); } }
+        .bubble { bottom: -4vh; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.15); animation: rise linear infinite; }
+        .rise { bottom: -6vh; animation: rise linear infinite; }
+        @keyframes rise { from { transform: translate(0, 0); opacity: 0; } 8% { opacity: 1; } to { transform: translate(var(--drift, 0px), -115vh); opacity: 0.9; } }
+        .firefly { width: 6px; height: 6px; border-radius: 50%; background: #ffd54f; box-shadow: 0 0 10px 3px rgba(255,200,60,0.7); animation: float ease-in-out infinite alternate, blink ease-in-out infinite; }
+        @keyframes float { from { transform: translate(0, 0); } to { transform: translate(var(--dx, 20px), var(--dy, -20px)); } }
+        @keyframes blink { 0%, 100% { opacity: 0.1; } 50% { opacity: 1; } }
+        .shooting { width: 120px; height: 2px; background: linear-gradient(90deg, rgba(255,255,255,0), #fff); transform: rotate(25deg); opacity: 0; animation: shoot ease-out infinite; }
+        @keyframes shoot { 0% { opacity: 0; transform: translate(0, 0) rotate(25deg); } 5% { opacity: 1; } 20% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } 100% { opacity: 0; transform: translate(260px, 120px) rotate(25deg); } }
+        .nebula { border-radius: 50%; filter: blur(20px); animation: float ease-in-out infinite alternate; --dx: 40px; --dy: 30px; }
+        .smoke { width: 26px; height: 26px; border-radius: 50%; background: rgba(230,230,230,0.6); filter: blur(4px); animation: puff ease-out infinite; }
+        @keyframes puff { 0% { transform: translate(-13px, 0) scale(0.5); opacity: 0.7; } 100% { transform: translate(calc(var(--drift, 0px) - 13px), -200px) scale(2.6); opacity: 0; } }
+        .wavebox { left: 0; width: 100%; overflow: hidden; }
+        .wave { position: absolute; left: 0; bottom: 0; width: 200%; height: 100%; }
+        .wave.w1 { animation: waveMove 9s linear infinite; }
+        .wave.w2 { animation: waveMove 14s linear infinite reverse; opacity: 0.7; }
+        @keyframes waveMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .ray { top: -10%; width: 9vw; height: 70%; background: linear-gradient(to bottom, rgba(255,255,255,0.28), rgba(255,255,255,0)); transform: skewX(-18deg); animation: rayPulse 7s ease-in-out infinite; }
+        @keyframes rayPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+        .mist { left: -30%; width: 160%; height: 14%; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 30%, rgba(255,255,255,0.25) 60%, rgba(255,255,255,0) 100%); filter: blur(8px); animation: mistDrift linear infinite alternate; }
+        @keyframes mistDrift { from { transform: translateX(0); } to { transform: translateX(18%); } }
+        .aurora { left: -10%; top: 4%; width: 120%; height: 34%; background: linear-gradient(100deg, rgba(80,255,170,0) 0%, rgba(80,255,170,0.35) 25%, rgba(120,160,255,0.35) 50%, rgba(220,120,255,0.3) 70%, rgba(80,255,170,0) 100%); filter: blur(18px); animation: auroraShift 16s ease-in-out infinite alternate; }
+        @keyframes auroraShift { from { transform: translateX(-6%) skewY(-3deg); opacity: 0.6; } to { transform: translateX(6%) skewY(3deg); opacity: 1; } }
+        .rainbow { left: 50%; top: 42%; width: 90vw; height: 45vw; transform: translateX(-50%) translateY(-100%); border-radius: 90vw 90vw 0 0; background: radial-gradient(circle at 50% 100%, transparent 62%, #e74c3c 62.5% 65%, #f39c12 65% 67.5%, #f1c40f 67.5% 70%, #2ecc71 70% 72.5%, #3498db 72.5% 75%, #9b59b6 75% 77.5%, transparent 78%); opacity: 0.55; }
+        .vine { top: 0; width: 6px; background: linear-gradient(#1f6b3c, #2d8a4e); border-radius: 3px; transform-origin: top center; animation: sway ease-in-out infinite alternate; }
+        .vine span { position: absolute; bottom: -1.2rem; left: -0.9rem; font-size: 2rem; }
+        .light { width: 9px; height: 9px; border-radius: 50%; animation: blink 1.6s ease-in-out infinite; box-shadow: 0 0 8px 2px currentColor; }
 
         .animal {
             position: absolute;
@@ -107,11 +158,10 @@
 
         .meter-wrap {
             position: absolute;
-            top: 0.25rem;
+            top: 1rem;
             left: 50%;
             transform: translateX(-50%);
             width: min(560px, 60vw);
-            padding-top: 24px;   /* room for the "goal" tag above the bar */
             z-index: 5;
             opacity: 0;
             transition: opacity 0.3s;
@@ -138,7 +188,7 @@
         }
         .meter .goal {
             position: absolute;
-            top: -6px; bottom: -6px;
+            top: -3px; bottom: -3px;
             width: 4px;
             margin-left: -2px;
             background: #fff;
@@ -148,7 +198,7 @@
         .meter .goal::after {
             content: 'goal';
             position: absolute;
-            top: -22px;
+            top: calc(100% + 4px);   /* below the bar so nothing can be clipped at the top */
             left: 50%;
             transform: translateX(-50%);
             font-size: 0.7rem;
@@ -163,7 +213,7 @@
             display: flex;
             gap: 0.35rem;
             justify-content: center;
-            margin-top: 0.45rem;
+            margin-top: 1.5rem;
         }
         .meter-presets button {
             border: none;
@@ -376,7 +426,7 @@
 <body>
     <header class="tool-header">
         <a href="../index.html" class="back-link" aria-label="Back to tools">&#8592;</a>
-        <h1>Quiet Safari</h1>
+        <h1>Quiet Landscapes</h1>
     </header>
 
     <div class="stage" id="stage">
@@ -418,7 +468,7 @@
         <div class="start-card" id="startCard">
             <div class="card">
                 <div style="font-size:3rem;">&#129418; &#129427; &#129433;</div>
-                <h2>Quiet Safari</h2>
+                <h2>Quiet Landscapes</h2>
                 <p>Shy animals come out while the classroom stays under the volume goal. Stay loud and they run away. Twelve scenes to choose from, including seasonal ones. The microphone only measures loudness. Nothing is recorded or sent anywhere.</p>
                 <div class="start-scenes-label">Pick a scene</div>
                 <div class="start-scenes" id="startScenes"></div>
@@ -508,87 +558,110 @@
         const SCENES = {
             savanna: {
                 group: 'Nature', name: 'Savanna', swatch: '#e9b24a',
-                bg: 'linear-gradient(#f9d976 0%, #f39c5a 45%, #c98a3a 46%, #d9a85a 70%, #b9893b 100%)',
-                fog: 'rgba(214, 184, 130, 0.85)', zone: [0.55, 0.88], sun: { color: '#fff2a8', x: 78, y: 10, size: 90 },
-                deco: [['\u{1F334}', 6, 42, 4], ['\u{1F335}', 88, 50, 3], ['\u{1FAA8}', 40, 60, 2.2], ['\u{1F33E}', 20, 72, 2.5], ['\u{1F33E}', 65, 80, 2.5]],
-                animals: [{ emoji: '\u{1F993}', name: 'Zebra', tier: 'common' }, { emoji: '\u{1F992}', name: 'Giraffe', tier: 'uncommon' }, { emoji: '\u{1F981}', name: 'Lion', tier: 'rare' }]
+                bg: 'linear-gradient(#ffe9a3 0%, #f9c27a 35%, #f0975a 50%, #d9a85a 51%, #b9893b 100%)',
+                fog: 'rgba(214, 184, 130, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff2a8', x: 78, y: 8, size: 90 },
+                ridges: [{ top: 44, h: 22, color: '#dba65e', shape: 0 }, { top: 50, h: 20, color: '#c8903f', shape: 1 }],
+                deco: [['🌳', 4, 36, 5], ['🌴', 24, 38, 4.5], ['🌳', 68, 37, 4.5], ['🌵', 88, 50, 3], ['🪨', 40, 62, 2.2], ['🌾', 12, 74, 2.5], ['🌾', 30, 84, 2.5], ['🌾', 58, 80, 2.5], ['🌾', 80, 86, 2.5], ['🌾', 94, 72, 2.2], ['🌿', 50, 70, 2]],
+                ambient: [['clouds', 5], ['birds', 2]],
+                animals: [{ emoji: '🦓', name: 'Zebra', tier: 'common' }, { emoji: '🦒', name: 'Giraffe', tier: 'uncommon' }, { emoji: '🦁', name: 'Lion', tier: 'rare' }]
             },
             reef: {
                 group: 'Nature', name: 'Coral reef', swatch: '#1f8fb4',
-                bg: 'linear-gradient(#7fd3f0 0%, #2a9fd6 30%, #1b6fa8 75%, #0f4a7a 100%)',
-                fog: 'rgba(60, 110, 100, 0.85)', zone: [0.2, 0.88],
-                deco: [['\u{1FAB8}', 10, 82, 3.5], ['\u{1FAB8}', 80, 84, 3], ['\u{1F33F}', 45, 86, 2.5], ['\u{1F41A}', 28, 90, 1.6], ['\u{1FAB8}', 60, 88, 2.4]],
-                animals: [{ emoji: '\u{1F420}', name: 'Fish', tier: 'common' }, { emoji: '\u{1F422}', name: 'Turtle', tier: 'uncommon' }, { emoji: '\u{1F988}', name: 'Shark', tier: 'rare' }]
+                bg: 'linear-gradient(#8fdcf5 0%, #39a9dc 25%, #1b76b0 70%, #104f82 100%)',
+                fog: 'rgba(60, 110, 100, 0.85)', zone: [0.22, 0.82],
+                ridges: [{ top: 84, h: 16, color: '#d9c58a', shape: 2 }],
+                deco: [['🪸', 6, 80, 4], ['🪸', 82, 82, 3.5], ['🪸', 45, 86, 3], ['🌿', 18, 84, 3], ['🌿', 64, 86, 3.2], ['🌿', 92, 80, 2.8], ['🐚', 30, 92, 1.6], ['🪨', 55, 93, 2.2], ['🪸', 26, 90, 2.4], ['🌿', 38, 90, 2.2]],
+                ambient: [['waves', { top: 0, h: 10, color: 'rgba(255,255,255,0.35)' }], ['rays'], ['bubbles', 28]],
+                animals: [{ emoji: '🐠', name: 'Fish', tier: 'common' }, { emoji: '🐢', name: 'Turtle', tier: 'uncommon' }, { emoji: '🦈', name: 'Shark', tier: 'rare' }]
             },
             space: {
                 group: 'Nature', name: 'Deep space', swatch: '#2b2d6e',
                 bg: 'radial-gradient(circle at 70% 30%, #3d2e7a 0%, #141a3b 45%, #060915 100%)',
-                fog: 'rgba(90, 90, 110, 0.8)', zone: [0.1, 0.85], stars: 70,
-                deco: [['\u{1F30D}', 12, 70, 4], ['\u{1F319}', 85, 15, 3]],
-                animals: [{ emoji: '\u{1F6F0}️', name: 'Satellite', tier: 'common' }, { emoji: '☄️', name: 'Comet', tier: 'uncommon' }, { emoji: '\u{1F30C}', name: 'Galaxy', tier: 'rare' }]
+                fog: 'rgba(90, 90, 110, 0.8)', zone: [0.12, 0.85], stars: 110,
+                deco: [['🌍', 12, 70, 4], ['🌙', 85, 15, 3], ['🪐', 30, 22, 3.5, 'spin'], ['🚀', 70, 60, 2.2]],
+                ambient: [['nebula', 3], ['shooting', 3]],
+                animals: [{ emoji: '🛰️', name: 'Satellite', tier: 'common' }, { emoji: '☄️', name: 'Comet', tier: 'uncommon' }, { emoji: '🌌', name: 'Galaxy', tier: 'rare' }]
             },
             prehistoric: {
                 group: 'Nature', name: 'Prehistoric', swatch: '#6a8f3c',
-                bg: 'linear-gradient(#ffd19a 0%, #f0a36a 40%, #6f8f3b 41%, #4d6e2a 100%)',
-                fog: 'rgba(120, 100, 70, 0.85)', zone: [0.5, 0.88], sun: { color: '#ffb36b', x: 20, y: 12, size: 80 },
-                deco: [['\u{1F30B}', 75, 28, 5], ['\u{1F334}', 10, 48, 3.5], ['\u{1F33F}', 50, 70, 2.5], ['\u{1FAA8}', 88, 80, 2.2]],
-                animals: [{ emoji: '\u{1F995}', name: 'Sauropod', tier: 'common' }, { emoji: '\u{1F996}', name: 'T. rex', tier: 'uncommon' }, { emoji: '\u{1F985}', name: 'Raptor', tier: 'rare' }]
+                bg: 'linear-gradient(#ffd19a 0%, #f0a36a 42%, #7a9a44 50%, #4d6e2a 100%)',
+                fog: 'rgba(120, 100, 70, 0.85)', zone: [0.56, 0.88], sun: { color: '#ffb36b', x: 18, y: 10, size: 80 },
+                ridges: [{ top: 38, h: 24, color: '#8a7a5a', shape: 3 }, { top: 48, h: 20, color: '#5f8a3a', shape: 0 }],
+                deco: [['🌋', 72, 20, 6], ['🌴', 8, 42, 4.5], ['🌴', 90, 44, 4], ['🌿', 20, 66, 3], ['🌿', 50, 70, 3], ['🌿', 80, 68, 3], ['🪨', 36, 80, 2.4], ['🌱', 62, 84, 2], ['🌿', 94, 84, 2.6]],
+                ambient: [['smoke', 8, { x: 77, y: 20 }], ['clouds', 4]],
+                animals: [{ emoji: '🦕', name: 'Sauropod', tier: 'common' }, { emoji: '🦖', name: 'T. rex', tier: 'uncommon' }, { emoji: '🦅', name: 'Raptor', tier: 'rare' }]
             },
             forest: {
                 group: 'Nature', name: 'Forest', swatch: '#2f7a3e',
-                bg: 'linear-gradient(#bfe3f5 0%, #9fd0c8 40%, #3f7a3e 41%, #2b5a2c 100%)',
-                fog: 'rgba(225, 232, 235, 0.85)', zone: [0.55, 0.88],
-                deco: [['\u{1F332}', 5, 36, 5], ['\u{1F333}', 30, 32, 5], ['\u{1F332}', 60, 38, 4.5], ['\u{1F333}', 85, 34, 5], ['\u{1F344}', 45, 84, 1.8], ['\u{1FAB5}', 70, 86, 2.2]],
-                animals: [{ emoji: '\u{1F43F}️', name: 'Squirrel', tier: 'common' }, { emoji: '\u{1F98A}', name: 'Fox', tier: 'uncommon' }, { emoji: '\u{1F98C}', name: 'Deer', tier: 'rare' }]
+                bg: 'linear-gradient(#cfe9f7 0%, #a9d8d0 38%, #4a8a44 50%, #2b5a2c 100%)',
+                fog: 'rgba(225, 232, 235, 0.85)', zone: [0.6, 0.88], sun: { color: '#fff7d6', x: 82, y: 8, size: 70 },
+                ridges: [{ top: 34, h: 22, color: '#2f6b3a', shape: 4 }, { top: 44, h: 20, color: '#2a5a2e', shape: 4 }],
+                deco: [['🌲', 2, 40, 5], ['🌳', 14, 44, 4.5], ['🌲', 28, 38, 5], ['🌲', 42, 46, 4], ['🌳', 58, 40, 5], ['🌲', 74, 44, 4.5], ['🌲', 88, 38, 5], ['🌳', 96, 46, 4], ['🍄', 35, 84, 1.8], ['🪵', 66, 86, 2.4], ['🌿', 20, 80, 2.2], ['🌿', 84, 82, 2.2]],
+                ambient: [['leaves', 16, '🍃'], ['mist'], ['rays']],
+                animals: [{ emoji: '🐿️', name: 'Squirrel', tier: 'common' }, { emoji: '🦊', name: 'Fox', tier: 'uncommon' }, { emoji: '🦌', name: 'Deer', tier: 'rare' }]
             },
             jungle: {
                 group: 'Nature', name: 'Jungle', swatch: '#1f8a4c',
-                bg: 'linear-gradient(#9be0b2 0%, #3faa6a 35%, #1f6b3c 36%, #164d2b 100%)',
-                fog: 'rgba(120, 170, 130, 0.85)', zone: [0.5, 0.88],
-                deco: [['\u{1F334}', 8, 30, 5.5], ['\u{1F33F}', 25, 70, 3], ['\u{1F334}', 80, 28, 5], ['\u{1F33A}', 55, 78, 2.2], ['\u{1F33F}', 90, 72, 3]],
-                animals: [{ emoji: '\u{1F9A5}', name: 'Sloth', tier: 'common' }, { emoji: '\u{1F99C}', name: 'Toucan', tier: 'uncommon' }, { emoji: '\u{1F406}', name: 'Jaguar', tier: 'rare' }]
+                bg: 'linear-gradient(#b7e8c4 0%, #4fb47a 32%, #1f6b3c 48%, #164d2b 100%)',
+                fog: 'rgba(120, 170, 130, 0.85)', zone: [0.56, 0.88],
+                ridges: [{ top: 36, h: 24, color: '#2d8a4e', shape: 1 }, { top: 46, h: 20, color: '#1d6a38', shape: 0 }],
+                deco: [['🌴', 4, 30, 6], ['🌴', 84, 28, 5.5], ['🌳', 40, 36, 5], ['🌿', 18, 68, 3.2], ['🌺', 30, 78, 2.4], ['🌿', 56, 72, 3.2], ['🌺', 70, 84, 2.2], ['🌿', 90, 70, 3], ['🍃', 48, 86, 2], ['🪨', 12, 88, 2]],
+                ambient: [['vines', 7], ['leaves', 12, '🍃'], ['mist'], ['butterflies', 2]],
+                animals: [{ emoji: '🦥', name: 'Sloth', tier: 'common' }, { emoji: '🦜', name: 'Toucan', tier: 'uncommon' }, { emoji: '🐆', name: 'Jaguar', tier: 'rare' }]
             },
             arctic: {
                 group: 'Nature', name: 'Arctic', swatch: '#9fd3ea',
-                bg: 'linear-gradient(#cfe9f7 0%, #a9d6ee 40%, #eef7fb 41%, #d6ecf6 100%)',
-                fog: 'rgba(240, 246, 250, 0.9)', zone: [0.5, 0.88], sun: { color: '#fff7d6', x: 15, y: 10, size: 60 },
-                deco: [['\u{1F9CA}', 20, 52, 4], ['\u{1F9CA}', 70, 58, 3.5], ['⛰️', 45, 30, 5], ['\u{1F9CA}', 90, 78, 2.5]],
-                animals: [{ emoji: '\u{1F9AD}', name: 'Seal', tier: 'common' }, { emoji: '\u{1F43B}‍❄️', name: 'Polar bear', tier: 'uncommon' }, { emoji: '\u{1F433}', name: 'Whale', tier: 'rare' }]
+                bg: 'linear-gradient(#0f2b4e 0%, #2c5f8f 30%, #a9d6ee 48%, #eef7fb 49%, #d6ecf6 100%)',
+                fog: 'rgba(240, 246, 250, 0.9)', zone: [0.52, 0.84],
+                ridges: [{ top: 30, h: 22, color: '#dbe9f3', shape: 3 }, { top: 40, h: 16, color: '#f6fbfe', shape: 4 }],
+                deco: [['🧊', 16, 56, 3.5], ['🧊', 70, 60, 3], ['🧊', 44, 90, 2.4], ['🧊', 88, 92, 2.2]],
+                ambient: [['aurora'], ['snow', 60], ['waves', { top: 86, h: 14, color: 'rgba(110, 170, 215, 0.95)' }]],
+                animals: [{ emoji: '🦭', name: 'Seal', tier: 'common' }, { emoji: '🐻‍❄️', name: 'Polar bear', tier: 'uncommon' }, { emoji: '🐳', name: 'Whale', tier: 'rare' }]
             },
             halloween: {
                 group: 'Seasons & holidays', name: 'Halloween', swatch: '#6a2c91',
-                bg: 'linear-gradient(#2b1a4a 0%, #4a2a6e 40%, #d9772b 41%, #3a2416 55%, #241509 100%)',
-                fog: 'rgba(110, 70, 140, 0.85)', zone: [0.52, 0.88], stars: 40, sun: { color: '#fff3c4', x: 72, y: 8, size: 80 },
-                deco: [['\u{1F383}', 10, 76, 3.5], ['\u{1F383}', 82, 82, 3], ['\u{1FAA6}', 30, 70, 3], ['\u{1F3DA}\uFE0F', 55, 36, 5], ['\u{1F578}\uFE0F', 92, 20, 3], ['\u{1F342}', 45, 86, 2.2]],
-                animals: [{ emoji: '\u{1F408}\u200D\u2B1B', name: 'Black cat', tier: 'common' }, { emoji: '\u{1F987}', name: 'Bat', tier: 'uncommon' }, { emoji: '\u{1F47B}', name: 'Friendly ghost', tier: 'rare' }]
+                bg: 'linear-gradient(#1b1036 0%, #3b2160 40%, #d9772b 52%, #3a2416 56%, #241509 100%)',
+                fog: 'rgba(110, 70, 140, 0.85)', zone: [0.58, 0.88], stars: 50, moon: { x: 72, y: 8, size: 80 },
+                ridges: [{ top: 46, h: 22, color: '#2b1a3e', shape: 3 }, { top: 54, h: 18, color: '#1c1028', shape: 1 }],
+                deco: [['🏚️', 52, 30, 6], ['🌳', 10, 36, 5, 'dead'], ['🌳', 86, 38, 4.5, 'dead'], ['🪦', 24, 70, 3], ['🪦', 36, 76, 2.6], ['🪦', 70, 72, 3], ['🎃', 8, 80, 3.2, 'flicker'], ['🎃', 60, 84, 3, 'flicker'], ['🎃', 90, 80, 2.8, 'flicker'], ['🕸️', 94, 18, 3], ['🍂', 45, 90, 2], ['🕯️', 54, 44, 1.4, 'flicker']],
+                ambient: [['bats', 6], ['clouds', 3, 'dark'], ['fireflies', 14]],
+                animals: [{ emoji: '🐈‍⬛', name: 'Black cat', tier: 'common' }, { emoji: '🦇', name: 'Bat', tier: 'uncommon' }, { emoji: '👻', name: 'Friendly ghost', tier: 'rare' }]
             },
             thanksgiving: {
                 group: 'Seasons & holidays', name: 'Thanksgiving', swatch: '#c0662b',
-                bg: 'linear-gradient(#f7d7a3 0%, #e9a35b 40%, #a86b32 41%, #7a4a22 100%)',
-                fog: 'rgba(190, 130, 70, 0.85)', zone: [0.52, 0.88], sun: { color: '#ffe8b0', x: 20, y: 10, size: 80 },
-                deco: [['\u{1F3E1}', 80, 30, 5], ['\u{1F33D}', 12, 60, 3], ['\u{1F33D}', 20, 66, 3], ['\u{1F383}', 55, 80, 3], ['\u{1F341}', 40, 50, 2.5], ['\u{1F342}', 70, 60, 2.5], ['\u{1F33E}', 90, 76, 2.5]],
-                animals: [{ emoji: '\u{1F983}', name: 'Turkey', tier: 'common' }, { emoji: '\u{1F98C}', name: 'Deer', tier: 'uncommon' }, { emoji: '\u{1F989}', name: 'Owl', tier: 'rare' }]
+                bg: 'linear-gradient(#ffe2b3 0%, #f3b06a 42%, #b8743a 50%, #7a4a22 100%)',
+                fog: 'rgba(190, 130, 70, 0.85)', zone: [0.58, 0.88], sun: { color: '#ffe8b0', x: 18, y: 10, size: 80 },
+                ridges: [{ top: 40, h: 22, color: '#d6973f', shape: 0 }, { top: 48, h: 20, color: '#b0702e', shape: 1 }],
+                deco: [['🏡', 76, 30, 5.5], ['🌳', 4, 36, 5, 'autumn'], ['🌳', 34, 38, 4.5, 'autumn'], ['🌳', 94, 40, 4, 'autumn'], ['🌽', 12, 62, 3], ['🌽', 18, 66, 3], ['🌽', 24, 62, 3], ['🎃', 56, 82, 3], ['🎃', 64, 86, 2.4], ['🍁', 40, 76, 2.2], ['🍂', 82, 78, 2.2], ['🌾', 90, 86, 2.5], ['🌾', 46, 90, 2.2]],
+                ambient: [['leaves', 22, '🍂🍁'], ['clouds', 4]],
+                animals: [{ emoji: '🦃', name: 'Turkey', tier: 'common' }, { emoji: '🦌', name: 'Deer', tier: 'uncommon' }, { emoji: '🦉', name: 'Owl', tier: 'rare' }]
             },
             holidays: {
                 group: 'Seasons & holidays', name: 'Winter holidays', swatch: '#1f5fa8',
-                bg: 'linear-gradient(#0f2a55 0%, #27508f 40%, #f4f8fb 41%, #dbe8f2 100%)',
-                fog: 'rgba(240, 246, 250, 0.9)', zone: [0.52, 0.88], stars: 60,
-                deco: [['\u{1F384}', 10, 40, 6], ['\u{1F384}', 85, 46, 5], ['\u{1F3E0}', 50, 36, 5], ['\u{1F381}', 30, 82, 2.5], ['\u{1F381}', 70, 86, 2.2], ['\u2744\uFE0F', 25, 15, 2], ['\u2744\uFE0F', 60, 22, 1.6]],
-                animals: [{ emoji: '\u{1F427}', name: 'Penguin', tier: 'common' }, { emoji: '\u26C4', name: 'Snowman', tier: 'uncommon' }, { emoji: '\u{1F98C}', name: 'Reindeer', tier: 'rare' }]
+                bg: 'linear-gradient(#0b1f44 0%, #24508f 42%, #f4f8fb 50%, #dbe8f2 100%)',
+                fog: 'rgba(240, 246, 250, 0.9)', zone: [0.58, 0.88], stars: 60, moon: { x: 14, y: 8, size: 60 },
+                ridges: [{ top: 40, h: 22, color: '#e6eff7', shape: 4 }, { top: 48, h: 18, color: '#fafdff', shape: 0 }],
+                deco: [['🎄', 6, 36, 6], ['🎄', 86, 40, 5.5], ['🎄', 30, 46, 4], ['🏠', 52, 32, 5.5], ['🎁', 24, 82, 2.5], ['🎁', 70, 86, 2.2], ['🎁', 40, 90, 2], ['🛷', 82, 80, 2.4], ['❄️', 64, 60, 1.6]],
+                ambient: [['snow', 70], ['lights', 28]],
+                animals: [{ emoji: '🐧', name: 'Penguin', tier: 'common' }, { emoji: '⛄', name: 'Snowman', tier: 'uncommon' }, { emoji: '🦌', name: 'Reindeer', tier: 'rare' }]
             },
             valentines: {
                 group: 'Seasons & holidays', name: "Valentine's Day", swatch: '#e0527a',
-                bg: 'linear-gradient(#ffd6e7 0%, #ffb3cf 40%, #a7d99b 41%, #7fbf72 100%)',
-                fog: 'rgba(240, 170, 200, 0.85)', zone: [0.52, 0.88], sun: { color: '#fff0c8', x: 80, y: 10, size: 70 },
-                deco: [['\u{1F339}', 10, 70, 3], ['\u{1F337}', 88, 74, 3], ['\u{1F495}', 30, 20, 2.5], ['\u{1F497}', 60, 28, 2.2], ['\u{1F48C}', 50, 84, 2.2], ['\u{1F338}', 72, 60, 2.5]],
-                animals: [{ emoji: '\u{1F430}', name: 'Bunny', tier: 'common' }, { emoji: '\u{1F9A2}', name: 'Swan', tier: 'uncommon' }, { emoji: '\u{1F98B}', name: 'Butterfly', tier: 'rare' }]
+                bg: 'linear-gradient(#ffe0ec 0%, #ffb9d2 42%, #b4e0a4 50%, #7fbf72 100%)',
+                fog: 'rgba(240, 170, 200, 0.85)', zone: [0.58, 0.88], sun: { color: '#fff0c8', x: 80, y: 8, size: 70 },
+                ridges: [{ top: 40, h: 22, color: '#9fd48f', shape: 1 }, { top: 48, h: 20, color: '#88c57a', shape: 0 }],
+                deco: [['🌳', 8, 36, 5], ['🌳', 90, 38, 4.5], ['🌹', 14, 72, 2.8], ['🌷', 28, 80, 2.6], ['🌸', 44, 70, 2.4], ['🌺', 60, 84, 2.4], ['🌷', 76, 74, 2.6], ['🌼', 90, 86, 2.2], ['💌', 50, 90, 2], ['🌱', 36, 90, 1.8]],
+                ambient: [['hearts', 14], ['petals', 12], ['clouds', 4]],
+                animals: [{ emoji: '🐰', name: 'Bunny', tier: 'common' }, { emoji: '🦢', name: 'Swan', tier: 'uncommon' }, { emoji: '🦋', name: 'Butterfly', tier: 'rare' }]
             },
             stpatricks: {
                 group: 'Seasons & holidays', name: "St. Patrick's Day", swatch: '#2a9d4f',
-                bg: 'linear-gradient(#cfeefc 0%, #9fdcf4 40%, #4fb360 41%, #2e8b44 100%)',
-                fog: 'rgba(120, 190, 130, 0.85)', zone: [0.52, 0.88],
-                deco: [['\u{1F308}', 65, 12, 6], ['\u{1F3F0}', 12, 30, 5], ['\u2618\uFE0F', 25, 72, 2.5], ['\u{1F340}', 50, 80, 2.5], ['\u2618\uFE0F', 80, 70, 2.5], ['\u{1FA99}', 88, 84, 2.2]],
-                animals: [{ emoji: '\u{1F411}', name: 'Sheep', tier: 'common' }, { emoji: '\u{1F407}', name: 'Hare', tier: 'uncommon' }, { emoji: '\u{1F9DA}', name: 'Fairy', tier: 'rare' }]
+                bg: 'linear-gradient(#d4f0fc 0%, #9fdcf4 42%, #5bbd6c 50%, #2e8b44 100%)',
+                fog: 'rgba(120, 190, 130, 0.85)', zone: [0.58, 0.88],
+                ridges: [{ top: 38, h: 24, color: '#5cb86a', shape: 0 }, { top: 46, h: 22, color: '#3f9c50', shape: 1 }],
+                deco: [['🏰', 10, 24, 5.5], ['🌳', 36, 40, 4.5], ['🌳', 90, 42, 4], ['☘️', 18, 72, 2.4], ['🍀', 32, 84, 2.4], ['☘️', 50, 76, 2.4], ['🍀', 66, 88, 2.2], ['☘️', 84, 74, 2.4], ['🪙', 70, 60, 2.4], ['🌼', 56, 90, 1.8]],
+                ambient: [['rainbow'], ['clover', 14], ['clouds', 4]],
+                animals: [{ emoji: '🐑', name: 'Sheep', tier: 'common' }, { emoji: '🐇', name: 'Hare', tier: 'uncommon' }, { emoji: '🧚', name: 'Fairy', tier: 'rare' }]
             }
         };
         const TIER_WEIGHTS = { common: 60, uncommon: 30, rare: 10 };
@@ -606,7 +679,7 @@
         // Run-away constants
         const FLEE_EVERY_MS = 5000, FLEE_FRACTION = 0.2;
 
-        const STORAGE_KEY = 'w68-quiet-safari';
+        const STORAGE_KEY = 'w68-quiet-landscapes';
 
         // ---------- State ----------
         let settings = {
@@ -658,21 +731,131 @@
         }
 
         // ---------- Scene rendering ----------
+        const SWAY_EMOJI = ['🌴', '🌵', '🌾', '🌿', '🌲', '🌳', '🎄', '🌽', '🌷', '🌹', '🌸', '🌺', '🌼', '🪸', '☘️', '🍀', '🌱', '🍃'];
+        const RIDGE_SHAPES = [
+            'M0,60 C15,30 30,70 45,45 S70,20 85,50 S95,40 100,45 L100,100 L0,100 Z',
+            'M0,50 C10,70 25,30 40,55 S60,75 75,40 S90,60 100,35 L100,100 L0,100 Z',
+            'M0,70 C20,55 35,80 50,65 S80,85 100,60 L100,100 L0,100 Z',
+            'M0,80 L12,40 L22,65 L34,20 L46,60 L58,35 L70,70 L82,25 L94,55 L100,45 L100,100 L0,100 Z',
+            'M0,70 L5,40 L10,70 L15,45 L20,72 L25,38 L30,70 L35,50 L40,72 L45,36 L50,70 L55,48 L60,72 L65,40 L70,70 L75,46 L80,72 L85,38 L90,70 L95,50 L100,70 L100,100 L0,100 Z'
+        ];
+        function rnd(a, b) { return a + Math.random() * (b - a); }
+        function pick(str) { const arr = Array.from(str); return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function ambientHtml(kind, n, opt, s) {
+            let h = '';
+            const skyBottom = s.zone[0] * 100 - 10;
+            switch (kind) {
+                case 'clouds':
+                    for (let i = 0; i < n; i++) h += `<div class="amb cloud ${opt === 'dark' ? 'dark' : ''}" style="top:${rnd(2, Math.max(6, skyBottom - 16)).toFixed(1)}%;font-size:${rnd(3, 6).toFixed(1)}rem;opacity:${rnd(0.55, 0.9).toFixed(2)};animation-duration:${rnd(70, 140).toFixed(0)}s;animation-delay:${rnd(-140, 0).toFixed(0)}s">☁️</div>`;
+                    break;
+                case 'birds':
+                    for (let i = 0; i < n; i++) h += `<div class="amb bird" style="top:${rnd(8, 24).toFixed(1)}%;font-size:1.3rem;animation-duration:${rnd(40, 70).toFixed(0)}s;animation-delay:${rnd(-60, 0).toFixed(0)}s">🕊️</div>`;
+                    break;
+                case 'bats':
+                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(6, 34).toFixed(1)}%;font-size:${rnd(1.2, 2).toFixed(1)}rem;animation-duration:${rnd(18, 32).toFixed(0)}s,${rnd(0.5, 0.9).toFixed(2)}s;animation-delay:${rnd(-30, 0).toFixed(0)}s,0s">🦇</div>`;
+                    break;
+                case 'butterflies':
+                    for (let i = 0; i < n; i++) h += `<div class="amb bat" style="top:${rnd(30, 60).toFixed(1)}%;font-size:1.4rem;animation-duration:${rnd(40, 60).toFixed(0)}s,${rnd(0.8, 1.2).toFixed(2)}s;animation-delay:${rnd(-50, 0).toFixed(0)}s,0s">🦋</div>`;
+                    break;
+                case 'snow':
+                    for (let i = 0; i < n; i++) h += `<div class="amb flake" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(3, 7).toFixed(0)}px;height:${rnd(3, 7).toFixed(0)}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--drift:${rnd(-40, 40).toFixed(0)}px;animation-duration:${rnd(9, 18).toFixed(1)}s;animation-delay:${rnd(-18, 0).toFixed(1)}s"></div>`;
+                    break;
+                case 'leaves':
+                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(1, 1.8).toFixed(1)}rem;--drift:${rnd(-80, 80).toFixed(0)}px;--rot:${rnd(-360, 360).toFixed(0)}deg;animation-duration:${rnd(10, 20).toFixed(1)}s;animation-delay:${rnd(-20, 0).toFixed(1)}s">${pick(opt || '🍂')}</div>`;
+                    break;
+                case 'petals':
+                    for (let i = 0; i < n; i++) h += `<div class="amb leaf" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.8, 1.3).toFixed(1)}rem;--drift:${rnd(-60, 60).toFixed(0)}px;--rot:${rnd(-300, 300).toFixed(0)}deg;animation-duration:${rnd(12, 22).toFixed(1)}s;animation-delay:${rnd(-22, 0).toFixed(1)}s">🌸</div>`;
+                    break;
+                case 'bubbles':
+                    for (let i = 0; i < n; i++) h += `<div class="amb bubble" style="left:${rnd(0, 100).toFixed(1)}%;width:${rnd(5, 14).toFixed(0)}px;height:${rnd(5, 14).toFixed(0)}px;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(8, 16).toFixed(1)}s;animation-delay:${rnd(-16, 0).toFixed(1)}s"></div>`;
+                    break;
+                case 'hearts':
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.8).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-50, 50).toFixed(0)}px;animation-duration:${rnd(14, 26).toFixed(1)}s;animation-delay:${rnd(-26, 0).toFixed(1)}s">${pick('💗💕💖❤️')}</div>`;
+                    break;
+                case 'clover':
+                    for (let i = 0; i < n; i++) h += `<div class="amb rise" style="left:${rnd(0, 100).toFixed(1)}%;font-size:${rnd(0.9, 1.5).toFixed(1)}rem;opacity:${rnd(0.5, 0.9).toFixed(2)};--drift:${rnd(-60, 60).toFixed(0)}px;animation-duration:${rnd(16, 28).toFixed(1)}s;animation-delay:${rnd(-28, 0).toFixed(1)}s">${pick('☘️🍀✨')}</div>`;
+                    break;
+                case 'fireflies':
+                    for (let i = 0; i < n; i++) h += `<div class="amb firefly" style="left:${rnd(0, 100).toFixed(1)}%;top:${rnd(40, 90).toFixed(1)}%;--dx:${rnd(-40, 40).toFixed(0)}px;--dy:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(5, 9).toFixed(1)}s,${rnd(2, 4).toFixed(1)}s;animation-delay:${rnd(-9, 0).toFixed(1)}s,${rnd(-4, 0).toFixed(1)}s"></div>`;
+                    break;
+                case 'shooting':
+                    for (let i = 0; i < n; i++) h += `<div class="amb shooting" style="left:${rnd(10, 90).toFixed(1)}%;top:${rnd(5, 50).toFixed(1)}%;animation-duration:${rnd(2, 3).toFixed(1)}s;animation-delay:${rnd(0, 20).toFixed(1)}s;animation-iteration-count:infinite;--gap:${rnd(10, 25).toFixed(0)}s"></div>`;
+                    break;
+                case 'nebula':
+                    for (let i = 0; i < n; i++) h += `<div class="amb nebula" style="left:${rnd(0, 80).toFixed(1)}%;top:${rnd(0, 70).toFixed(1)}%;width:${rnd(20, 40).toFixed(0)}vw;height:${rnd(20, 40).toFixed(0)}vw;background:radial-gradient(circle, ${['rgba(140,90,220,0.35)', 'rgba(60,140,220,0.3)', 'rgba(220,90,160,0.28)'][i % 3]} 0%, transparent 70%);animation-duration:${rnd(30, 50).toFixed(0)}s;animation-delay:${rnd(-50, 0).toFixed(0)}s"></div>`;
+                    break;
+                case 'smoke':
+                    for (let i = 0; i < n; i++) h += `<div class="amb smoke" style="left:${opt.x}%;top:${opt.y}%;--drift:${rnd(-30, 30).toFixed(0)}px;animation-duration:${rnd(6, 10).toFixed(1)}s;animation-delay:${rnd(-10, 0).toFixed(1)}s"></div>`;
+                    break;
+                case 'waves':
+                    h += `<div class="amb wavebox" style="top:${opt.top}%;height:${opt.h}%"><svg class="wave w1" viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="${opt.color}" d="M0,10 C12,2 25,18 37,10 S62,2 75,10 S100,18 112,10 S137,2 150,10 S175,18 187,10 S200,6 200,10 L200,20 L0,20 Z"/></svg><svg class="wave w2" viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="${opt.color}" d="M0,12 C15,20 30,4 45,12 S75,20 90,12 S120,4 135,12 S165,20 180,12 S200,8 200,12 L200,20 L0,20 Z"/></svg></div>`;
+                    break;
+                case 'rays':
+                    for (let i = 0; i < 4; i++) h += `<div class="amb ray" style="left:${15 + i * 22}%;animation-delay:${(i * 1.7).toFixed(1)}s"></div>`;
+                    break;
+                case 'mist':
+                    for (let i = 0; i < 2; i++) h += `<div class="amb mist" style="top:${(s.zone[0] * 100 + 2 + i * 14).toFixed(0)}%;animation-duration:${rnd(40, 70).toFixed(0)}s;animation-delay:${rnd(-70, 0).toFixed(0)}s"></div>`;
+                    break;
+                case 'aurora':
+                    h += `<div class="amb aurora"></div>`;
+                    break;
+                case 'rainbow':
+                    h += `<div class="amb rainbow"></div>`;
+                    break;
+                case 'vines':
+                    for (let i = 0; i < n; i++) {
+                        const x = rnd(3, 97).toFixed(1), len = rnd(14, 34).toFixed(0);
+                        h += `<div class="amb vine" style="left:${x}%;height:${len}%;animation-duration:${rnd(5, 9).toFixed(1)}s;animation-delay:${rnd(-9, 0).toFixed(1)}s"><span>🌿</span></div>`;
+                    }
+                    break;
+                case 'lights':
+                    // Twinkling lights clustered on the holiday trees
+                    const spots = [[6, 36, 6], [86, 40, 5.5], [30, 46, 4]];
+                    for (let i = 0; i < n; i++) {
+                        const t = spots[i % spots.length];
+                        const w = t[2] * 1.0, hh = t[2] * 1.1;   // rough emoji box in rem -> approximate in % via vw
+                        h += `<div class="amb light" style="left:calc(${t[0]}% + ${rnd(0.3, w - 0.3).toFixed(2)}rem);top:calc(${t[1]}% + ${rnd(0.8, hh - 0.3).toFixed(2)}rem);background:${['#ff5252', '#ffd740', '#69f0ae', '#40c4ff', '#ff4081'][i % 5]};animation-delay:${rnd(0, 3).toFixed(1)}s"></div>`;
+                    }
+                    break;
+            }
+            return h;
+        }
+
         function buildScene() {
             const s = sceneDef();
             const el = document.getElementById('scene');
             el.style.background = s.bg;
             let html = '';
-            if (s.sun) html += `<div class="sun" style="left:${s.sun.x}%;top:${s.sun.y}%;width:${s.sun.size}px;height:${s.sun.size}px;background:${s.sun.color};box-shadow:0 0 60px ${s.sun.color}"></div>`;
+            if (s.sun) html += `<div class="sun" style="left:${s.sun.x}%;top:${s.sun.y}%;width:${s.sun.size}px;height:${s.sun.size}px;background:${s.sun.color};--glow:${s.sun.color}"></div>`;
+            if (s.moon) html += `<div class="sun moon" style="left:${s.moon.x}%;top:${s.moon.y}%;width:${s.moon.size}px;height:${s.moon.size}px;--glow:#fff3c4"></div>`;
             if (s.stars) {
+                // Keep stars in the sky, off the ground; scenes with no ground (space) use the whole height
+                const skyTop = s.ridges ? Math.max(20, s.zone[0] * 100 - 14) : 100;
                 for (let i = 0; i < s.stars; i++) {
-                    const skyTop = s.zone[0] * 100 - 14;   // keep stars in the sky, off the ground
                     html += `<div class="star" style="left:${Math.random() * 100}%;top:${Math.random() * skyTop}%;animation-delay:${(Math.random() * 3).toFixed(2)}s"></div>`;
                 }
             }
-            (s.deco || []).forEach(d => {
-                html += `<div class="deco" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem">${d[0]}</div>`;
+            // Background ambience (behind ridges): clouds, nebula, aurora, rainbow, rays, shooting stars
+            const amb = s.ambient || [];
+            const behind = ['clouds', 'birds', 'nebula', 'aurora', 'rainbow', 'rays', 'shooting', 'bats', 'butterflies'];
+            const run = a => {
+                const n = (a[1] && typeof a[1] === 'object') ? 0 : a[1];
+                const opt = (a[1] && typeof a[1] === 'object') ? a[1] : a[2];
+                return ambientHtml(a[0], n, opt, s);
+            };
+            amb.filter(a => behind.includes(a[0])).forEach(a => { html += run(a); });
+            (s.ridges || []).forEach(r => {
+                html += `<svg class="ridge" viewBox="0 0 100 100" preserveAspectRatio="none" style="top:${r.top}%;height:${r.h}%"><path fill="${r.color}" d="${RIDGE_SHAPES[r.shape % RIDGE_SHAPES.length]}"/></svg>`;
             });
+            (s.deco || []).forEach(d => {
+                const cls = ['deco'];
+                if (SWAY_EMOJI.includes(d[0])) cls.push('sway');
+                if (d[4]) cls.push(d[4]);
+                html += `<div class="${cls.join(' ')}" style="left:${d[1]}%;top:${d[2]}%;font-size:${d[3]}rem;animation-duration:${rnd(4, 7).toFixed(1)}s;animation-delay:${rnd(-7, 0).toFixed(1)}s">${d[0]}</div>`;
+            });
+            // Foreground ambience: snow, leaves, bubbles, hearts, mist, waves, smoke, vines, lights
+            amb.filter(a => !behind.includes(a[0])).forEach(a => { html += run(a); });
             el.innerHTML = html;
             document.getElementById('fog').style.background = s.fog;
             presentList().forEach(a => placeAnimal(a, false));
